@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem *)",
+      "Bash(Select-Object FullName)",
+      "PowerShell(netstat *)",
+      "Bash(npm run *)",
+      "Bash(npx vite *)",
+      "Read(//c/Users/11465/Desktop/作业 杂项/springboot/项目/IdeaProjects/delivery platform/**)",
+      "Read(//mnt/c/Users/11465/**)",
+      "Bash(node *)",
+      "Bash(mvn compile *)"
+    ]
+  }
+}
