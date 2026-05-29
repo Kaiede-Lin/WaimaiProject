@@ -133,7 +133,7 @@ public class ReviewServiceImpl extends ServiceImpl<ReviewMapper, Review> impleme
         List<Review> reviews = reviewMapper.selectList(qw);
         Map<String, Object> summary = new HashMap<>();
 
-        double avg = reviews.stream().mapToInt(Review::getRating).average().orElse(0);
+        double avg = reviews.stream().mapToInt(Review::getRating).average().orElse(5.0);
         summary.put("average", BigDecimal.valueOf(avg).setScale(1, RoundingMode.HALF_UP));
         summary.put("total", reviews.size());
 

@@ -24,3 +24,4 @@ com\waimai\api\filter\XssFilter.class
 com\waimai\api\annotation\RateLimit.class
 com\waimai\api\filter\XssFilter$XssRequestWrapper.class
 com\waimai\api\controller\SystemConfigController.class
+com\waimai\api\config\RestTemplateConfig.class

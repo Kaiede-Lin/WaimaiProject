@@ -129,7 +129,12 @@ public class OrderController {
         vo.setDiscountAmount(order.getDiscountAmount());
         vo.setPayAmount(order.getPayAmount());
         vo.setAddress(order.getAddress());
+        vo.setAddressLng(order.getAddressLng());
+        vo.setAddressLat(order.getAddressLat());
         vo.setRemark(order.getRemark());
+        vo.setEstimatedMinutes(order.getEstimatedMinutes());
+        vo.setMerchantId(order.getMerchantId());
+        vo.setRiderId(order.getRiderId());
         vo.setPayTime(order.getPayTime());
         vo.setCreateTime(order.getCreateTime());
 

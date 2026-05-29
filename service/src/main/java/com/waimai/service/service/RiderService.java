@@ -22,6 +22,8 @@ public interface RiderService extends IService<Rider> {
 
     void acceptTask(Long riderId, Long orderId);
 
+    void pickupTask(Long riderId, Long orderId);
+
     void completeTask(Long riderId, Long orderId);
 
     List<DeliveryTrack> getTracks(Long orderId);

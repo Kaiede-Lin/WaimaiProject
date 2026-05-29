@@ -8,6 +8,7 @@ com\waimai\service\impl\EtaServiceImpl.class
 com\waimai\service\service\PaymentService.class
 com\waimai\service\impl\ReviewServiceImpl.class
 com\waimai\service\service\ReportService.class
+com\waimai\service\impl\DirectionServiceImpl.class
 com\waimai\service\mapper\OrderMapper.class
 com\waimai\service\service\CouponService.class
 com\waimai\service\service\RedisInventoryService.class
@@ -49,6 +50,7 @@ com\waimai\service\mapper\PaymentMapper.class
 com\waimai\service\impl\RecommendServiceImpl.class
 com\waimai\service\service\UserService.class
 com\waimai\service\push\OrderPushService$MerchantLocationPush.class
+com\waimai\service\service\DirectionService.class
 com\waimai\service\service\DispatchService.class
 com\waimai\service\service\RecommendService.class
 com\waimai\service\impl\MerchantServiceImpl.class

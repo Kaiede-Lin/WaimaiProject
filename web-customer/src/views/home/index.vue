@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import { showToast } from 'vant'
 import request from '@/utils/request'
+import { loadAmap, getBrowserLocation } from '@/utils/amap'
+import { calcDeliveryFee, calcDeliveryTime, saveLocation, getStoredLocation, getLastAddress } from '@/utils/delivery'
 
 const router = useRouter()
 const merchants = ref<any[]>([])
@@ -11,6 +12,16 @@ const loading = ref(false)
 const searchText = ref('')
 const sortBy = ref<'default' | 'score' | 'sales' | 'distance'>('default')
 const currentLoc = ref({ lng: 116.397, lat: 39.908 })
+const currentAddress = ref('正在定位...')
+
+const mapContainer = ref<HTMLDivElement>()
+let mapInstance: any = null
+let userMarker: any = null
+const merchantMarkers = ref<any[]>([])
+
+function getA() {
+  return (window as any).AMap || window.AMap
+}
 
 const filteredMerchants = computed(() => {
   let list = [...allMerchants.value]
@@ -36,11 +47,74 @@ async function fetch() {
       params: { lng: currentLoc.value.lng, lat: currentLoc.value.lat, radius: 10 }
     })
     allMerchants.value = res.data || []
+    if (mapInstance) addMerchantMarkers()
   } catch { /* ignore */ }
   loading.value = false
 }
 
+function addMerchantMarkers() {
+  if (!mapInstance) return
+  const A = getA()
+  merchantMarkers.value.forEach((m: any) => mapInstance.remove(m))
+  merchantMarkers.value = []
+  const list = allMerchants.value.filter((m: any) => m.longitude && m.latitude)
+  if (!list.length) return
+  list.forEach((m: any) => {
+    const lng = Number(m.longitude)
+    const lat = Number(m.latitude)
+    const marker = new A.Marker({
+      position: [lng, lat],
+      title: m.name,
+      content: `<div style="background:#fff;border:2px solid #409EFF;border-radius:12px;padding:2px 8px;font-size:11px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.15);color:#333">${m.name}</div>`,
+      offset: new A.Pixel(-30, -18)
+    })
+    marker.on('click', () => router.push(`/merchant/${m.id}`))
+    mapInstance.add(marker)
+    merchantMarkers.value.push(marker)
+  })
+  mapInstance.setFitView(merchantMarkers.value, false)
+}
+
+async function initMap() {
+  if (!mapContainer.value) return
+  // Use stored location if available (from address selection), otherwise try GPS
+  const stored = getStoredLocation()
+  if (stored.lng !== 116.397428 || stored.lat !== 39.90923) {
+    currentLoc.value = stored
+  } else {
+    const pos = await getBrowserLocation()
+    currentLoc.value = { lng: pos.lng, lat: pos.lat }
+    saveLocation(pos.lng, pos.lat)
+  }
+  currentAddress.value = getLastAddress() || `${currentLoc.value.lat.toFixed(4)}, ${currentLoc.value.lng.toFixed(4)}`
+  try {
+    await loadAmap()
+  } catch {
+    return
+  }
+  await nextTick()
+  if (!mapContainer.value) return
+
+  const A = getA()
+  mapInstance = new A.Map(mapContainer.value, {
+    zoom: 13,
+    center: [currentLoc.value.lng, currentLoc.value.lat],
+    resizeEnable: true,
+    viewMode: '2D'
+  })
+
+  userMarker = new A.Marker({
+    position: [currentLoc.value.lng, currentLoc.value.lat],
+    content: `<div style="width:16px;height:16px;background:#409EFF;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(64,158,255,.5)"></div>`,
+    offset: new A.Pixel(-8, -8)
+  })
+  mapInstance.add(userMarker)
+
+  await fetch()
+}
+
 function goMerchant(id: number) {
+  if (!id) return
   router.push(`/merchant/${id}`)
 }
 
@@ -55,7 +129,14 @@ function cycleSort() {
   sortBy.value = order[(idx + 1) % order.length]
 }
 
-onMounted(fetch)
+onMounted(async () => {
+  await nextTick()
+  initMap()
+})
+
+onBeforeUnmount(() => {
+  if (mapInstance) mapInstance.destroy()
+})
 </script>
 
 <template>
@@ -65,6 +146,12 @@ onMounted(fetch)
         <van-icon name="user-o" size="20" @click="router.push('/profile')" />
       </template>
     </van-nav-bar>
+
+    <div class="address-bar" @click="router.push('/address')">
+      <van-icon name="location-o" size="16" color="#409EFF" />
+      <span class="address-text">{{ currentAddress }}</span>
+      <van-icon name="arrow" size="12" color="#999" />
+    </div>
 
     <div class="search-bar">
       <van-search
@@ -81,6 +168,8 @@ onMounted(fetch)
         <span class="filter-item">筛选</span>
       </div>
     </div>
+
+    <div ref="mapContainer" class="home-map"></div>
 
     <van-pull-refresh v-model="loading" @refresh="fetch">
       <div class="merchant-list">
@@ -100,10 +189,10 @@ onMounted(fetch)
             <div class="merchant-footer">
               <span class="delivery">
                 <van-icon name="clock-o" size="12" />
-                {{ m.avgDeliveryTime || 30 }}分钟
+                {{ calcDeliveryTime(m.distanceKm || 0) }}分钟
               </span>
-              <span class="delivery-fee">配送费 ¥{{ m.deliveryFee || 0 }}</span>
-              <span class="distance">{{ m.distanceKm?.toFixed(1) || '0' }}km</span>
+              <span class="delivery-fee">配送费 ¥{{ calcDeliveryFee(m.distanceKm || 0) }}</span>
+              <span class="distance">{{ (m.distanceKm || 0).toFixed(1) }}km</span>
             </div>
             <div v-if="m.description" class="merchant-desc">{{ m.description }}</div>
           </div>
@@ -122,6 +211,12 @@ onMounted(fetch)
 
 <style scoped>
 .home-page { padding-bottom: 50px; }
+.address-bar {
+  display: flex; align-items: center; gap: 6px; padding: 8px 16px;
+  background: linear-gradient(135deg, #e8f4ff, #f0f8ff); cursor: pointer;
+  margin: 0 8px; border-radius: 8px; font-size: 13px;
+}
+.address-text { flex: 1; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .search-bar { background: #fff; position: sticky; top: 46px; z-index: 10; }
 .filter-bar {
   display: flex; gap: 0; padding: 0 16px 8px; font-size: 13px;
@@ -130,6 +225,7 @@ onMounted(fetch)
   flex: 1; text-align: center; color: #666; cursor: pointer; padding: 4px 0;
 }
 .filter-item.active { color: #409EFF; font-weight: 600; }
+.home-map { height: 200px; margin: 0 8px; border-radius: 8px; overflow: hidden; }
 .merchant-list { padding: 8px; }
 .merchant-card {
   display: flex; gap: 12px; padding: 12px; background: #fff; border-radius: 8px; margin-bottom: 8px; cursor: pointer;

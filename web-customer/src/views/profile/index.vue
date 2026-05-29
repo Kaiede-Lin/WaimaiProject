@@ -40,6 +40,7 @@ onMounted(fetchUser)
 
     <van-cell-group inset>
       <van-cell title="我的订单" icon="orders-o" is-link to="/order/list" />
+      <van-cell title="收货地址" icon="location-o" is-link to="/address" />
       <van-cell title="我的评价" icon="star-o" is-link />
       <van-cell title="优惠券" icon="coupon-o" is-link :value="(user.couponCount || 0) + '张'" />
       <van-cell title="关于我们" icon="info-o" is-link value="v1.0.0" />

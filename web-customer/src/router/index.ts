@@ -22,6 +22,12 @@ const router = createRouter({
       meta: { title: '我的', requireAuth: true }
     },
     {
+      path: '/address',
+      name: 'Address',
+      component: () => import('@/views/address/index.vue'),
+      meta: { title: '收货地址', requireAuth: true }
+    },
+    {
       path: '/merchant/:id',
       name: 'MerchantDetail',
       component: () => import('@/views/merchant/detail.vue'),

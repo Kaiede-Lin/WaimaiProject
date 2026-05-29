@@ -9,7 +9,7 @@ const tasks = ref<any[]>([])
 const loading = ref(false)
 const tab = ref(0)
 
-const activeTasks = computed(() => tasks.value.filter((t: any) => t.status === 'DELIVERING'))
+const activeTasks = computed(() => tasks.value.filter((t: any) => t.status === 'ACCEPTED' || t.status === 'DELIVERING'))
 const completedTasks = computed(() => tasks.value.filter((t: any) => t.status === 'COMPLETED'))
 const todayTasks = computed(() => tasks.value.filter((t: any) => {
   return t.createTime?.substring(0, 10) === new Date().toISOString().substring(0, 10)
@@ -28,20 +28,30 @@ async function fetch() {
   loading.value = false
 }
 
+let pickingUp = false
+
 async function pickUpOrder(order: any) {
+  if (pickingUp) return
+  pickingUp = true
   try {
     await request.post(`/rider/order/${order.orderNo}/pickup`)
-    showSuccessToast('已取餐')
+    showSuccessToast('已取餐，开始配送')
     fetch()
   } catch {}
+  pickingUp = false
 }
 
+let completing = false
+
 async function completeOrder(order: any) {
+  if (completing) return
+  completing = true
   try {
     await request.post(`/rider/order/${order.orderNo}/complete`)
     showSuccessToast('配送完成')
     fetch()
   } catch {}
+  completing = false
 }
 
 function goTrack(order: any) {
@@ -83,8 +93,14 @@ onMounted(fetch)
         <div v-if="activeTasks.length === 0" style="text-align:center;padding:40px;color:#999">暂无进行中的任务</div>
         <div v-for="t in activeTasks" :key="t.id" class="task-card">
           <div class="task-status">
-            <van-tag type="primary" size="small">配送中</van-tag>
+            <van-tag :type="t.status === 'ACCEPTED' ? 'warning' : 'primary'" size="small">
+              {{ t.status === 'ACCEPTED' ? '待取餐' : '配送中' }}
+            </van-tag>
             <span class="order-no">#{{ t.orderNo?.substring(t.orderNo.length - 10) }}</span>
+          </div>
+          <div class="task-addr">
+            <van-icon name="shop-o" size="14" color="#ff6b35" />
+            <span>取餐：{{ t.merchantName || '商家' }}</span>
           </div>
           <div class="task-addr">
             <van-icon name="location-o" size="14" color="#409EFF" />
@@ -96,7 +112,12 @@ onMounted(fetch)
           </div>
           <div class="task-actions">
             <van-button size="small" plain @click="goTrack(t)">导航</van-button>
-            <van-button size="small" type="success" @click="completeOrder(t)">确认送达</van-button>
+            <van-button v-if="t.status === 'ACCEPTED'" size="small" type="warning" :loading="pickingUp" @click="pickUpOrder(t)">
+              确认取餐
+            </van-button>
+            <van-button v-if="t.status === 'DELIVERING'" size="small" type="success" :loading="completing" @click="completeOrder(t)">
+              确认送达
+            </van-button>
           </div>
         </div>
       </van-tab>

@@ -124,6 +124,15 @@ public class MerchantController {
         Merchant cur = currentMerchant();
         merchant.setId(cur.getId());
         merchantService.updateById(merchant);
+
+        // Update Redis GEO index and evict nearby caches when location changes
+        if (merchant.getLongitude() != null && merchant.getLatitude() != null) {
+            geoService.addMerchantLocation(cur.getId(),
+                    merchant.getLongitude().doubleValue(),
+                    merchant.getLatitude().doubleValue());
+            geoService.evictNearbyCache();
+        }
+
         return Result.ok();
     }
 

@@ -185,7 +185,7 @@ public class AdminController {
             m.put("rejectionReason", r.getRejectionReason());
             m.put("status", r.getStatus());
             m.put("totalOrders", r.getTotalOrders());
-            m.put("score", r.getScore());
+            m.put("score", r.getScore() != null ? r.getScore() : BigDecimal.valueOf(5.0));
             m.put("createTime", r.getCreateTime());
             return m;
         }).collect(Collectors.toList());

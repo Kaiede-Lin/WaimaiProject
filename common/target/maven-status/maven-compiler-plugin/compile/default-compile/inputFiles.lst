@@ -1,3 +1,4 @@
+C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\common\src\main\java\com\waimai\common\config\AmapProperties.java
 C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\common\src\main\java\com\waimai\common\entity\Payment.java
 C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\common\src\main\java\com\waimai\common\entity\DeliveryTrack.java
 C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\common\src\main\java\com\waimai\common\vo\CartItemVO.java
@@ -15,6 +16,7 @@ C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery pla
 C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\common\src\main\java\com\waimai\common\entity\UserCoupon.java
 C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\common\src\main\java\com\waimai\common\dto\SplitOrderDTO.java
 C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\common\src\main\java\com\waimai\common\utils\SnowflakeUtil.java
+C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\common\src\main\java\com\waimai\common\entity\UserAddress.java
 C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\common\src\main\java\com\waimai\common\entity\SystemConfig.java
 C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\common\src\main\java\com\waimai\common\vo\OrderDetailVO.java
 C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\common\src\main\java\com\waimai\common\utils\IdCardUtil.java
@@ -47,5 +49,6 @@ C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery pla
 C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\common\src\main\java\com\waimai\common\vo\ReviewVO.java
 C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\common\src\main\java\com\waimai\common\dto\CreateDisputeDTO.java
 C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\common\src\main\java\com\waimai\common\dto\RiderLocationDTO.java
+C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\common\src\main\java\com\waimai\common\utils\MapUtils.java
 C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\common\src\main\java\com\waimai\common\entity\Merchant.java
 C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\common\src\main\java\com\waimai\common\entity\Review.java

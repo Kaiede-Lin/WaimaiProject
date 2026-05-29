@@ -56,6 +56,7 @@ public class RiderServiceImpl extends ServiceImpl<RiderMapper, Rider> implements
         rider.setAuditStatus(RiderAuditStatus.PENDING);
         rider.setStatus(RiderStatus.OFFLINE);
         rider.setTotalOrders(0);
+        rider.setScore(new java.math.BigDecimal("5.0"));
         saveOrUpdate(rider);
     }
 
@@ -120,10 +121,24 @@ public class RiderServiceImpl extends ServiceImpl<RiderMapper, Rider> implements
             throw new BusinessException("订单已被其他骑手接单");
         }
         order.setRiderId(riderId);
-        order.setStatus(OrderStatus.DELIVERING);
+        order.setStatus(OrderStatus.ACCEPTED);
         order.setDeliverTime(LocalDateTime.now());
         int eta = etaService.calculateEta(orderId);
         order.setEstimatedMinutes(eta);
+        orderMapper.updateById(order);
+    }
+
+    @Override
+    @Transactional
+    public void pickupTask(Long riderId, Long orderId) {
+        Order order = orderMapper.selectById(orderId);
+        if (order == null || !riderId.equals(order.getRiderId())) {
+            throw new BusinessException("订单不存在或未分配给您");
+        }
+        if (!OrderStatus.ACCEPTED.equals(order.getStatus())) {
+            throw new BusinessException("当前状态不允许取餐操作");
+        }
+        order.setStatus(OrderStatus.DELIVERING);
         orderMapper.updateById(order);
     }
 

@@ -3,13 +3,22 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { showToast, showSuccessToast, showConfirmDialog } from 'vant'
 import request from '@/utils/request'
+import LocationPicker from '@/components/map/LocationPicker.vue'
+import { setLocationFromAddress } from '@/utils/delivery'
 
 const router = useRouter()
 const addresses = ref<any[]>([])
 const showDialog = ref(false)
 const editingAddr = ref<any>({})
-const form = ref({ name: '', phone: '', address: '', detail: '', isDefault: false })
+const form = ref({
+  name: '', phone: '', address: '', detail: '',
+  longitude: null as number | null, latitude: null as number | null,
+  isDefault: false
+})
 const loading = ref(false)
+const showMapPicker = ref(false)
+const mapPickerInitialLng = ref(116.397428)
+const mapPickerInitialLat = ref(39.90923)
 
 async function fetchAddresses() {
   loading.value = true
@@ -25,10 +34,43 @@ function openDialog(addr?: any) {
     form.value = { ...addr }
     editingAddr.value = addr
   } else {
-    form.value = { name: '', phone: '', address: '', detail: '', isDefault: false }
+    form.value = {
+      name: '', phone: '', address: '', detail: '',
+      longitude: null, latitude: null, isDefault: false
+    }
     editingAddr.value = {}
   }
   showDialog.value = true
+}
+
+async function openMapPicker() {
+  // Try GPS first (triggers permission prompt), fallback to form coords, then Beijing
+  if (navigator.geolocation) {
+    const gpsPos = await new Promise<{ lng: number; lat: number } | null>((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        (p) => resolve({ lng: p.coords.longitude, lat: p.coords.latitude }),
+        () => resolve(null),
+        { timeout: 8000, maximumAge: 0 }
+      )
+    })
+    if (gpsPos) {
+      mapPickerInitialLng.value = form.value.longitude || gpsPos.lng
+      mapPickerInitialLat.value = form.value.latitude || gpsPos.lat
+    } else {
+      mapPickerInitialLng.value = form.value.longitude || 116.397428
+      mapPickerInitialLat.value = form.value.latitude || 39.90923
+    }
+  } else {
+    mapPickerInitialLng.value = form.value.longitude || 116.397428
+    mapPickerInitialLat.value = form.value.latitude || 39.90923
+  }
+  showMapPicker.value = true
+}
+
+function onLocationPicked(data: { address: string; longitude: number; latitude: number }) {
+  form.value.address = data.address
+  form.value.longitude = data.longitude
+  form.value.latitude = data.latitude
 }
 
 async function saveAddress() {
@@ -55,7 +97,8 @@ async function deleteAddress(id: number) {
 }
 
 function selectAddress(addr: any) {
-  localStorage.setItem('selectedAddress', JSON.stringify(addr))
+  setLocationFromAddress(addr)
+  localStorage.setItem('selectedAddressId', String(addr.id))
   router.back()
 }
 
@@ -89,8 +132,23 @@ onMounted(fetchAddresses)
       <van-field v-model="form.name" label="收货人" placeholder="请输入姓名" />
       <van-field v-model="form.phone" label="手机号" placeholder="请输入手机号" type="tel" />
       <van-field v-model="form.address" label="地址" placeholder="请输入详细地址" />
+      <div class="map-pick-cell">
+        <van-button size="small" type="primary" plain icon="location-o" @click="openMapPicker">
+          在地图上选择位置
+        </van-button>
+        <span v-if="form.longitude && form.latitude" class="coord-tag">
+          {{ form.longitude.toFixed(6) }}, {{ form.latitude.toFixed(6) }}
+        </span>
+      </div>
       <van-field v-model="form.detail" label="门牌号" placeholder="楼号/房间号（选填）" />
     </van-dialog>
+
+    <LocationPicker
+      v-model="showMapPicker"
+      :initial-lng="mapPickerInitialLng"
+      :initial-lat="mapPickerInitialLat"
+      @confirm="onLocationPicked"
+    />
   </div>
 </template>
 
@@ -105,4 +163,6 @@ onMounted(fetchAddresses)
 .addr-phone { color: #666; font-size: 13px; }
 .addr-text { font-size: 13px; color: #333; line-height: 1.5; margin-bottom: 8px; }
 .addr-actions { display: flex; gap: 8px; }
+.map-pick-cell { padding: 4px 16px 0; display: flex; align-items: center; gap: 8px; }
+.coord-tag { font-size: 11px; color: #999; }
 </style>

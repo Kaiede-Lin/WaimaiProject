@@ -3,11 +3,15 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { showToast, showSuccessToast, showConfirmDialog } from 'vant'
 import request from '@/utils/request'
+import LocationPicker from '@/components/map/LocationPicker.vue'
 
 const router = useRouter()
 const info = ref<any>({})
 const hours = ref('')
 const saving = ref(false)
+const showMapPicker = ref(false)
+const mapPickerInitialLng = ref(116.397428)
+const mapPickerInitialLat = ref(39.90923)
 
 async function fetch() {
   try {
@@ -34,11 +38,38 @@ async function saveInfo() {
       name: info.value.name,
       phone: info.value.phone,
       address: info.value.address,
-      description: info.value.description
+      description: info.value.description,
+      longitude: info.value.longitude,
+      latitude: info.value.latitude
     })
     showSuccessToast('店铺信息已保存')
   } catch {}
   saving.value = false
+}
+
+async function openMapPicker() {
+  // Try GPS first (triggers permission prompt), then stored coords, then Beijing default
+  let gpsPos: { lng: number; lat: number } | null = null
+  if (navigator.geolocation) {
+    gpsPos = await new Promise((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        (p) => resolve({ lng: p.coords.longitude, lat: p.coords.latitude }),
+        () => resolve(null),
+        { timeout: 5000, maximumAge: 0 }
+      )
+    })
+  }
+  mapPickerInitialLng.value = gpsPos?.lng
+    ?? (info.value.longitude ? Number(info.value.longitude) : 116.397428)
+  mapPickerInitialLat.value = gpsPos?.lat
+    ?? (info.value.latitude ? Number(info.value.latitude) : 39.90923)
+  showMapPicker.value = true
+}
+
+function onLocationPicked(data: { address: string; longitude: number; latitude: number }) {
+  info.value.address = data.address
+  info.value.longitude = data.longitude
+  info.value.latitude = data.latitude
 }
 
 function handleLogout() {
@@ -81,6 +112,14 @@ onMounted(fetch)
       <van-field v-model="info.name" label="店铺名称" placeholder="输入店铺名称" />
       <van-field v-model="info.phone" label="联系电话" placeholder="输入联系电话" type="tel" />
       <van-field v-model="info.address" label="店铺地址" placeholder="输入店铺地址" />
+      <div class="cell-footer map-pick-row">
+        <van-button size="small" type="primary" plain icon="location-o" @click="openMapPicker">
+          在地图上定位
+        </van-button>
+        <span v-if="info.longitude && info.latitude" class="coord-tag">
+          已定位: {{ Number(info.longitude).toFixed(6) }}, {{ Number(info.latitude).toFixed(6) }}
+        </span>
+      </div>
       <van-field v-model="info.description" label="店铺简介" placeholder="介绍一下您的店铺" type="textarea" rows="2" />
       <div class="cell-footer">
         <van-button type="primary" size="small" :loading="saving" @click="saveInfo">保存信息</van-button>
@@ -99,10 +138,19 @@ onMounted(fetch)
       <van-tabbar-item to="/menu" icon="wap-home-o">菜单</van-tabbar-item>
       <van-tabbar-item to="/reports" icon="chart-trending-o">报表</van-tabbar-item>
     </van-tabbar>
+
+    <LocationPicker
+      v-model="showMapPicker"
+      :initial-lng="mapPickerInitialLng"
+      :initial-lat="mapPickerInitialLat"
+      @confirm="onLocationPicked"
+    />
   </div>
 </template>
 
 <style scoped>
 .settings-page { padding-bottom: 50px; }
 .cell-footer { padding: 8px 16px; text-align: right; }
+.map-pick-row { display: flex; align-items: center; gap: 8px; text-align: left; }
+.coord-tag { font-size: 11px; color: #999; }
 </style>

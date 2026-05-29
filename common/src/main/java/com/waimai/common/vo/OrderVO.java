@@ -16,9 +16,14 @@ public class OrderVO {
     private BigDecimal payAmount;
     private String address;
     private String remark;
+    private Long merchantId;
+    private Long riderId;
     private String merchantName;
     private String riderName;
     private String riderPhone;
+    private BigDecimal addressLng;
+    private BigDecimal addressLat;
+    private Integer estimatedMinutes;
     private LocalDateTime payTime;
     private LocalDateTime createTime;
     private List<OrderDetailVO> details;

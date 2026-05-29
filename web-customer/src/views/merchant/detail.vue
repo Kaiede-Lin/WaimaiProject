@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { showToast } from 'vant'
 import request from '@/utils/request'
+import { calcDeliveryFee, calcDeliveryTime, haversineKm, getStoredLocation } from '@/utils/delivery'
 
 const route = useRoute()
 const router = useRouter()
@@ -12,6 +13,19 @@ const dishes = ref<any[]>([])
 const activeCategory = ref<number>(0)
 const cartQuantities = ref<Record<number, number>>({})
 const cartTotal = computed(() => Object.values(cartQuantities.value).reduce((a: number, b: number) => a + b, 0))
+
+const distanceKm = computed(() => {
+  const m = merchant.value
+  if (!m.longitude || !m.latitude) return 0
+  const loc = getStoredLocation()
+  return haversineKm(
+    loc.lat, loc.lng,
+    Number(m.latitude), Number(m.longitude)
+  )
+})
+
+const deliveryFee = computed(() => calcDeliveryFee(distanceKm.value))
+const deliveryTime = computed(() => calcDeliveryTime(distanceKm.value))
 
 async function fetchMerchant() {
   const res: any = await request.get(`/merchant/${route.params.id}`)
@@ -96,6 +110,21 @@ onMounted(async () => {
       </div>
     </div>
 
+    <div class="delivery-bar">
+      <div class="delivery-item">
+        <van-icon name="clock-o" size="14" color="#666" />
+        <span>约{{ deliveryTime }}分钟</span>
+      </div>
+      <div class="delivery-item">
+        <van-icon name="logistics" size="14" color="#666" />
+        <span>配送费 ¥{{ deliveryFee }}</span>
+      </div>
+      <div class="delivery-item" v-if="distanceKm > 0">
+        <van-icon name="location-o" size="14" color="#666" />
+        <span>{{ distanceKm.toFixed(1) }}km</span>
+      </div>
+    </div>
+
     <div class="menu-area">
       <div class="category-sidebar">
         <div v-for="cat in categories" :key="cat.id"
@@ -139,6 +168,11 @@ onMounted(async () => {
 .merchant-head { display: flex; gap: 10px; padding: 12px; background: #fff; align-items: center; }
 .merchant-head-info h3 { font-size: 16px; margin-bottom: 4px; }
 .merchant-head-info p { font-size: 12px; color: #999; }
+.delivery-bar {
+  display: flex; gap: 16px; padding: 8px 12px; background: #fff;
+  border-top: 1px solid #f0f0f0; font-size: 12px;
+}
+.delivery-item { display: flex; align-items: center; gap: 4px; color: #666; }
 .menu-area { display: flex; }
 .category-sidebar { width: 80px; background: #f8f8f8; min-height: calc(100vh - 320px); }
 .cat-item { padding: 14px 8px; font-size: 13px; text-align: center; border-left: 3px solid transparent; cursor: pointer; }

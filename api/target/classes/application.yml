@@ -83,7 +83,10 @@ springdoc:
 app:
   map:
     provider: amap    # 高德地图
-    api-key: TODO:YOUR_API_KEY
+    api-key: 4243b183d6b1342584f1e058ea9b7e47
+    base-url: https://restapi.amap.com
+    connect-timeout: 5000
+    read-timeout: 10000
   order:
     auto-cancel-minutes: 30   # 未支付自动取消时间
   snowflake:

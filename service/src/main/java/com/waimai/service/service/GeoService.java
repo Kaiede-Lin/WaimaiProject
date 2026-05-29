@@ -16,4 +16,6 @@ public interface GeoService {
     List<MerchantNearbyVO> searchNearbyMerchants(double lng, double lat, double radiusKm);
 
     List<RiderNearbyVO> searchNearbyRiders(double lng, double lat, double radiusKm);
+
+    void evictNearbyCache();
 }

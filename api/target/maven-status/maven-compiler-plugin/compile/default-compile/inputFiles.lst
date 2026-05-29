@@ -1,10 +1,12 @@
 C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\api\src\main\java\com\waimai\api\WaimaiApplication.java
+C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\api\src\main\java\com\waimai\api\config\DataEncodingFixer.java
 C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\api\src\main\java\com\waimai\api\config\RedisConfig.java
 C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\api\src\main\java\com\waimai\api\controller\AdminController.java
 C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\api\src\main\java\com\waimai\api\controller\RiderController.java
 C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\api\src\main\java\com\waimai\api\controller\OrderController.java
 C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\api\src\main\java\com\waimai\api\config\WebSocketConfig.java
 C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\api\src\main\java\com\waimai\api\config\MybatisMetaHandler.java
+C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\api\src\main\java\com\waimai\api\config\RestTemplateConfig.java
 C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\api\src\main\java\com\waimai\api\controller\CartController.java
 C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\api\src\main\java\com\waimai\api\controller\DisputeController.java
 C:\Users\11465\Desktop\作业 杂项\springboot\项目\IdeaProjects\delivery platform\waimai-backend\api\src\main\java\com\waimai\api\controller\AuthController.java

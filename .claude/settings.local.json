@@ -9,7 +9,10 @@
       "Read(//c/Users/11465/Desktop/作业 杂项/springboot/项目/IdeaProjects/delivery platform/**)",
       "Read(//mnt/c/Users/11465/**)",
       "Bash(node *)",
-      "Bash(mvn compile *)"
+      "Bash(mvn compile *)",
+      "Bash(npx vue-tsc *)",
+      "WebFetch(domain:lbs.amap.com)",
+      "WebSearch"
     ]
   }
 }

@@ -13,6 +13,7 @@ import com.waimai.common.exception.BusinessException;
 import com.waimai.common.utils.UserContext;
 import com.waimai.service.mapper.DeliveryTrackMapper;
 import com.waimai.service.mapper.OrderMapper;
+import com.waimai.service.service.DirectionService;
 import com.waimai.service.service.DispatchService;
 import com.waimai.service.service.GeoService;
 import com.waimai.service.service.OrderService;
@@ -37,12 +38,14 @@ public class RiderController {
     private final DispatchService dispatchService;
     private final RiderIncomeService riderIncomeService;
     private final DeliveryTrackMapper deliveryTrackMapper;
+    private final DirectionService directionService;
 
     public RiderController(RiderService riderService, GeoService geoService,
                            OrderPushService orderPushService, OrderService orderService,
                            OrderMapper orderMapper, DispatchService dispatchService,
                            RiderIncomeService riderIncomeService,
-                           DeliveryTrackMapper deliveryTrackMapper) {
+                           DeliveryTrackMapper deliveryTrackMapper,
+                           DirectionService directionService) {
         this.riderService = riderService;
         this.geoService = geoService;
         this.orderPushService = orderPushService;
@@ -51,6 +54,7 @@ public class RiderController {
         this.dispatchService = dispatchService;
         this.riderIncomeService = riderIncomeService;
         this.deliveryTrackMapper = deliveryTrackMapper;
+        this.directionService = directionService;
     }
 
     @PostMapping("/register")
@@ -120,9 +124,7 @@ public class RiderController {
         Order order = orderService.getByOrderNo(orderNo);
         if (order == null) throw new BusinessException("订单不存在");
         Rider rider = currentRider();
-        if (!rider.getId().equals(order.getRiderId())) {
-            throw new BusinessException("您不是该订单的配送骑手");
-        }
+        riderService.pickupTask(rider.getId(), order.getId());
         return Result.ok();
     }
 
@@ -174,7 +176,8 @@ public class RiderController {
         if (order == null || !rider.getId().equals(order.getRiderId())) {
             throw new BusinessException("订单不存在或未分配给您");
         }
-        if (!OrderStatus.DELIVERING.equals(order.getStatus())) {
+        if (!OrderStatus.DELIVERING.equals(order.getStatus())
+                && !OrderStatus.ACCEPTED.equals(order.getStatus())) {
             throw new BusinessException("当前状态不允许上报轨迹");
         }
         DeliveryTrack track = new DeliveryTrack();
@@ -198,7 +201,7 @@ public class RiderController {
         data.put("level", rider.getLevel());
         data.put("levelScore", rider.getLevelScore());
         data.put("totalOrders", rider.getTotalOrders());
-        data.put("score", rider.getScore());
+        data.put("score", rider.getScore() != null ? rider.getScore() : BigDecimal.valueOf(5.0));
         return Result.ok(data);
     }
 
@@ -232,11 +235,21 @@ public class RiderController {
         return Result.ok(riderIncomeService.listWithdrawals(currentRider().getId()));
     }
 
+    // ─── Direction (proxy Amap driving API) ────────────────────────
+
+    @GetMapping("/direction/driving")
+    public Result<String> drivingDirection(
+            @RequestParam String origin,
+            @RequestParam String destination) {
+        return Result.ok(directionService.getDrivingRoute(origin, destination));
+    }
+
     // ─── Helper ────────────────────────────────────────────────────
 
     private Rider currentRider() {
         Rider r = riderService.getByOpenid(UserContext.getOpenid());
         if (r == null) throw new BusinessException("未找到骑手信息");
+        if (r.getScore() == null) r.setScore(BigDecimal.valueOf(5.0));
         return r;
     }
 }

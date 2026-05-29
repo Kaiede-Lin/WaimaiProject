@@ -1,4 +1,5 @@
 com\waimai\common\dto\RiderRegisterDTO.class
+com\waimai\common\utils\MapUtils.class
 com\waimai\common\vo\OrderVO.class
 com\waimai\common\vo\MerchantReportVO.class
 com\waimai\common\dto\LoginDTO.class
@@ -13,6 +14,7 @@ com\waimai\common\constant\MerchantStatus.class
 com\waimai\common\entity\Review.class
 com\waimai\common\utils\UserContext.class
 com\waimai\common\vo\ReviewVO.class
+com\waimai\common\config\AmapProperties.class
 com\waimai\common\dto\WsMessage.class
 com\waimai\common\entity\Dish.class
 com\waimai\common\entity\OrderDispute.class
