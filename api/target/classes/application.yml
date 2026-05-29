@@ -1,0 +1,95 @@
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+spring:
+  main:
+    allow-circular-references: true
+  application:
+    name: waimai-backend
+
+  # ==================== MySQL 8.x ====================
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/waimai?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&useUnicode=true&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      idle-timeout: 300000
+      max-lifetime: 1200000
+
+  # ==================== Redis ====================
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      database: 0
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+
+  # ==================== RabbitMQ ====================
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+    listener:
+      simple:
+        acknowledge-mode: manual
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 2000ms
+
+# ==================== MyBatis-Plus ====================
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.waimai.common.entity
+  global-config:
+    db-config:
+      id-type: ASSIGN_ID
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# ==================== JWT ====================
+jwt:
+  secret: YOUR_JWT_SECRET_KEY_AT_LEAST_256_BITS_CHANGE_IN_PRODUCTION
+  access-token-expire: 7200  # 2 hours (seconds)
+  refresh-token-expire: 604800 # 7 days (seconds)
+
+# ==================== SpringDoc OpenAPI ====================
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+# ==================== App Config ====================
+app:
+  map:
+    provider: amap    # 高德地图
+    api-key: TODO:YOUR_API_KEY
+  order:
+    auto-cancel-minutes: 30   # 未支付自动取消时间
+  snowflake:
+    worker-id: 1
+    datacenter-id: 1
+  ai:
+    deepseek:
+      api-key: sk-3f33c29cff69477a937ccaaf09e2d792
+      base-url: https://api.deepseek.com
