@@ -6,6 +6,7 @@ import com.waimai.common.entity.Category;
 import com.waimai.common.entity.Dish;
 import com.waimai.common.entity.Merchant;
 import com.waimai.common.entity.Order;
+import com.waimai.common.entity.OrderDispute;
 import com.waimai.common.exception.BusinessException;
 import com.waimai.common.utils.UserContext;
 import com.waimai.common.vo.MerchantNearbyVO;
@@ -13,12 +14,20 @@ import com.waimai.common.vo.MerchantReportVO;
 import com.waimai.common.vo.OrderVO;
 import com.waimai.service.service.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import org.springframework.beans.factory.annotation.Value;
+
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -32,11 +41,12 @@ public class MerchantController {
     private final OrderService orderService;
     private final DispatchService dispatchService;
     private final ReportService reportService;
+    private final DisputeService disputeService;
 
     public MerchantController(MerchantService merchantService, GeoService geoService,
                                DishService dishService, CategoryService categoryService,
                                OrderService orderService, DispatchService dispatchService,
-                               ReportService reportService) {
+                               ReportService reportService, DisputeService disputeService) {
         this.merchantService = merchantService;
         this.geoService = geoService;
         this.dishService = dishService;
@@ -44,6 +54,7 @@ public class MerchantController {
         this.orderService = orderService;
         this.dispatchService = dispatchService;
         this.reportService = reportService;
+        this.disputeService = disputeService;
     }
 
     // ─── Public endpoints ──────────────────────────────────────────
@@ -139,6 +150,60 @@ public class MerchantController {
     @GetMapping("/my")
     public Result<Merchant> my() {
         return Result.ok(currentMerchant());
+    }
+
+    // ─── Image upload ──────────────────────────────────────────────
+
+    @Value("${app.upload.dir:./uploads}")
+    private String uploadDirPath;
+
+    @PostMapping("/upload/image")
+    public Result<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new BusinessException("上传文件不能为空");
+        }
+
+        // Validate file type
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new BusinessException("只能上传图片文件");
+        }
+
+        // Validate file size (max 5MB)
+        if (file.getSize() > 5 * 1024 * 1024) {
+            throw new BusinessException("图片大小不能超过5MB");
+        }
+
+        // Generate unique filename
+        String originalFilename = file.getOriginalFilename();
+        String extension = "";
+        if (originalFilename != null && originalFilename.contains(".")) {
+            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+        String filename = UUID.randomUUID().toString() + extension;
+
+        // Resolve upload directory as absolute path and ensure it exists
+        Path uploadDir = Paths.get(uploadDirPath).toAbsolutePath().normalize();
+        if (!Files.exists(uploadDir)) {
+            try {
+                Files.createDirectories(uploadDir);
+            } catch (IOException e) {
+                throw new BusinessException("创建上传目录失败: " + e.getMessage());
+            }
+        }
+
+        // Save file
+        try {
+            Files.copy(file.getInputStream(), uploadDir.resolve(filename));
+        } catch (IOException e) {
+            throw new BusinessException("图片上传失败: " + e.getMessage());
+        }
+
+        // Return accessible URL
+        String imageUrl = "/uploads/" + filename;
+        Map<String, String> result = new HashMap<>();
+        result.put("url", imageUrl);
+        return Result.ok(result);
     }
 
     // ─── Dish management (current merchant) ────────────────────────
@@ -259,6 +324,33 @@ public class MerchantController {
     @GetMapping("/report/monthly")
     public Result<MerchantReportVO> monthlyReport(@RequestParam String month) {
         return Result.ok(reportService.monthlyReport(currentMerchantId(), month));
+    }
+
+    // ─── Order detail (merchant view) ──────────────────────────────
+
+    @GetMapping("/order/{id}/detail")
+    public Result<Order> orderDetail(@PathVariable Long id) {
+        Order order = orderService.getById(id);
+        if (order == null || !order.getMerchantId().equals(currentMerchantId())) {
+            throw new BusinessException("订单不存在");
+        }
+        return Result.ok(order);
+    }
+
+    // ─── Dispute / Refund ─────────────────────────────────────────
+
+    @GetMapping("/dispute/list")
+    public Result<List<OrderDispute>> disputeList(
+            @RequestParam(required = false) String refundStatus) {
+        return Result.ok(disputeService.listByMerchant(currentMerchantId(), refundStatus));
+    }
+
+    @PutMapping("/dispute/{id}/handle")
+    public Result<?> handleDispute(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+        boolean approved = Boolean.TRUE.equals(body.get("approved"));
+        String remark = (String) body.getOrDefault("remark", "");
+        disputeService.handleByMerchant(currentMerchantId(), id, approved, remark);
+        return Result.ok();
     }
 
     // ─── Helpers ───────────────────────────────────────────────────

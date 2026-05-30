@@ -56,6 +56,18 @@ const router = createRouter({
       name: 'OrderDetail',
       component: () => import('@/views/order/detail.vue'),
       meta: { title: '订单详情', requireAuth: true }
+    },
+    {
+      path: '/review/list',
+      name: 'MyReviews',
+      component: () => import('@/views/review/index.vue'),
+      meta: { title: '我的评价', requireAuth: true }
+    },
+    {
+      path: '/dispute/list',
+      name: 'MyDisputes',
+      component: () => import('@/views/dispute/list.vue'),
+      meta: { title: '我的纠纷', requireAuth: true }
     }
   ]
 })

@@ -41,7 +41,8 @@ onMounted(fetchUser)
     <van-cell-group inset>
       <van-cell title="我的订单" icon="orders-o" is-link to="/order/list" />
       <van-cell title="收货地址" icon="location-o" is-link to="/address" />
-      <van-cell title="我的评价" icon="star-o" is-link />
+      <van-cell title="我的评价" icon="star-o" is-link to="/review/list" />
+      <van-cell title="我的纠纷" icon="warning-o" is-link to="/dispute/list" />
       <van-cell title="优惠券" icon="coupon-o" is-link :value="(user.couponCount || 0) + '张'" />
       <van-cell title="关于我们" icon="info-o" is-link value="v1.0.0" />
     </van-cell-group>
@@ -62,7 +63,7 @@ onMounted(fetchUser)
 .profile-page { padding-bottom: 50px; }
 .user-card {
   display: flex; align-items: center; gap: 16px;
-  padding: 24px 16px; background: linear-gradient(135deg, #409EFF, #66b1ff);
+  padding: 24px 16px; background: linear-gradient(135deg, var(--info), #66b1ff);
   color: #fff; margin-bottom: 12px;
 }
 .user-info h3 { font-size: 18px; margin-bottom: 4px; }

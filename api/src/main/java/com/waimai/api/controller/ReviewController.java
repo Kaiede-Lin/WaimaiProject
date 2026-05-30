@@ -47,4 +47,11 @@ public class ReviewController {
     public Result<?> orderReview(@PathVariable Long orderId) {
         return Result.ok(reviewService.getOrderReviews(orderId, UserContext.getUserId()));
     }
+
+    @GetMapping("/my")
+    public Result<Page<ReviewVO>> myReviews(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return Result.ok(reviewService.listByUser(UserContext.getUserId(), page, size));
+    }
 }

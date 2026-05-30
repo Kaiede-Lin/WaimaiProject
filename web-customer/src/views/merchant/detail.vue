@@ -133,6 +133,10 @@ onMounted(async () => {
       </div>
       <div class="dish-list">
         <div v-for="dish in dishes" :key="dish.id" class="dish-item">
+          <div class="dish-thumb-wrapper">
+            <van-image v-if="dish.image" :src="dish.image" width="70" height="70" radius="6" fit="cover" />
+            <van-icon v-else name="photo-o" size="28" color="#ccc" />
+          </div>
           <div class="dish-info">
             <div class="dish-name">{{ dish.name }}</div>
             <div class="dish-desc">{{ dish.summary }}</div>
@@ -178,7 +182,11 @@ onMounted(async () => {
 .cat-item { padding: 14px 8px; font-size: 13px; text-align: center; border-left: 3px solid transparent; cursor: pointer; }
 .cat-item.active { background: #fff; border-left-color: #409EFF; color: #409EFF; font-weight: 600; }
 .dish-list { flex: 1; padding: 8px; background: #fff; }
-.dish-item { display: flex; padding: 10px 0; border-bottom: 1px solid #f0f0f0; gap: 10px; }
+.dish-item { display: flex; padding: 10px 0; border-bottom: 1px solid #f0f0f0; gap: 10px; align-items: flex-start; }
+.dish-thumb-wrapper {
+  width: 70px; height: 70px; border-radius: 6px; background: #f5f5f5;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden;
+}
 .dish-info { flex: 1; }
 .dish-name { font-size: 14px; font-weight: 500; }
 .dish-desc { font-size: 11px; color: #999; margin: 4px 0; }

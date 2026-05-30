@@ -127,8 +127,8 @@ onMounted(() => {
 <style scoped>
 .home-page { padding-bottom: 50px; }
 .shop-card {
-  background: linear-gradient(135deg, #ff6b35, #ff8c5a);
-  color: #fff; margin: 8px; padding: 16px; border-radius: 12px;
+  background: var(--primary-gradient); color: #fff; margin: 8px; padding: 20px;
+  border-radius: var(--radius-lg); box-shadow: 0 8px 24px rgba(255,107,53,0.25);
 }
 .shop-top { display: flex; align-items: center; gap: 12px; }
 .shop-info { flex: 1; }
@@ -137,22 +137,25 @@ onMounted(() => {
 .divider { opacity: 0.5; }
 .status-toggle {
   display: flex; flex-direction: column; align-items: center; gap: 4px;
-  background: rgba(255,255,255,0.2); border-radius: 20px; padding: 8px 12px; cursor: pointer; min-width: 60px;
+  background: rgba(255,255,255,0.2); border-radius: var(--radius-round); padding: 10px 14px;
+  cursor: pointer; min-width: 60px; transition: background 0.2s;
 }
+.status-toggle:hover { background: rgba(255,255,255,0.3); }
 .status-toggle .toggle-dot {
   width: 12px; height: 12px; border-radius: 50%; background: #999; transition: background 0.3s;
 }
-.status-toggle.open .toggle-dot { background: #07c160; box-shadow: 0 0 8px rgba(7,193,96,0.6); }
+.status-toggle.open .toggle-dot { background: var(--success); box-shadow: 0 0 8px rgba(7,193,96,0.6); }
 .toggle-label { font-size: 10px; }
 .shop-desc { margin-top: 8px; font-size: 12px; opacity: 0.85; }
 
 .stats-row { display: flex; gap: 8px; padding: 8px; }
 .stat-item {
-  flex: 1; background: #fff; border-radius: 8px; padding: 14px 12px; text-align: center;
+  flex: 1; background: var(--card-bg); border-radius: var(--radius); padding: 16px 12px;
+  text-align: center; box-shadow: var(--shadow-sm);
 }
-.stat-val { font-size: 20px; font-weight: 700; color: #333; display: block; }
-.stat-val.highlight { color: #ee0a24; }
-.stat-label { font-size: 12px; color: #999; margin-top: 2px; display: block; }
+.stat-val { font-size: 22px; font-weight: 700; color: var(--text); display: block; }
+.stat-val.highlight { color: var(--danger); }
+.stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; display: block; }
 
 .quick-actions { padding: 0 8px; }
 </style>

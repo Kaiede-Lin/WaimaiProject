@@ -41,7 +41,7 @@ async function handleSubmit() {
         <p>品质美食 · 即时送达</p>
       </div>
 
-      <van-tabs v-model:active="mode" color="#ff6b35" title-active-color="#ff6b35" sticky>
+      <van-tabs v-model:active="mode" color="var(--primary)" title-active-color="var(--primary)" sticky>
         <van-tab title="登录" name="login" />
         <van-tab title="注册" name="register" />
       </van-tabs>
@@ -79,11 +79,6 @@ async function handleSubmit() {
           {{ mode === 'login' ? '立即登录' : '立即注册' }}
         </button>
       </van-form>
-
-      <div class="login-tip">
-        <van-divider>体验说明</van-divider>
-        <p>输入任意11位手机号即可模拟登录，无需真实验证码</p>
-      </div>
     </div>
   </div>
 </template>
@@ -91,101 +86,57 @@ async function handleSubmit() {
 <style scoped>
 .login-page {
   min-height: 100vh;
-  background: linear-gradient(160deg, #ff6b35 0%, #ff8c5a 30%, #fff0e8 60%, #fff 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
+  background: linear-gradient(160deg, var(--primary) 0%, #ff8c5a 30%, var(--primary-light) 60%, #fff 100%);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
 }
 .login-card {
-  width: 100%;
-  max-width: 380px;
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(255, 107, 53, 0.15);
-  padding: 32px 24px 24px;
-  overflow: hidden;
+  width: 100%; max-width: 380px; background: var(--card-bg);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 36px 28px 28px;
+  animation: slideUp 0.5s ease;
 }
-.logo-area {
-  text-align: center;
-  margin-bottom: 20px;
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
+.logo-area { text-align: center; margin-bottom: 24px; }
 .logo-circle {
-  width: 72px; height: 72px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #ff6b35, #ff8c5a);
+  width: 76px; height: 76px; border-radius: 50%;
+  background: var(--primary-gradient);
   display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 12px;
+  margin: 0 auto 14px;
+  box-shadow: 0 8px 24px rgba(255,107,53,0.25);
+  animation: pulse 2s ease-in-out infinite;
 }
-.logo-area h2 {
-  font-size: 22px; font-weight: 700; color: #1a1a1a; margin: 0 0 4px;
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 8px 24px rgba(255,107,53,0.25); }
+  50% { box-shadow: 0 8px 32px rgba(255,107,53,0.40); }
 }
-.logo-area p {
-  font-size: 13px; color: #999; margin: 0;
-}
-.login-form {
-  margin-top: 20px;
-}
+.logo-area h2 { font-size: 22px; font-weight: 700; color: var(--text); margin: 0 0 4px; }
+.logo-area p { font-size: 13px; color: var(--text-secondary); margin: 0; letter-spacing: 1px; }
+.login-form { margin-top: 24px; }
 .field-wrapper {
-  display: flex;
-  align-items: center;
-  background: #f8f8f8;
-  border-radius: 12px;
-  margin-bottom: 14px;
-  padding: 0 14px;
-  border: 2px solid transparent;
-  transition: border-color 0.25s, background 0.25s;
+  display: flex; align-items: center; background: #f8f8f8; border-radius: var(--radius);
+  margin-bottom: 14px; padding: 0 14px; border: 2px solid transparent;
+  transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
 }
 .field-wrapper:focus-within {
-  border-color: #ff6b35;
-  background: #fff;
+  border-color: var(--primary); background: #fff;
+  box-shadow: 0 0 0 4px rgba(255,107,53,0.08);
 }
-.field-icon {
-  width: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
+.field-icon { width: 32px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .text-input {
-  flex: 1;
-  height: 50px;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 15px;
-  color: #333;
+  flex: 1; height: 50px; border: none; outline: none; background: transparent;
+  font-size: 15px; color: var(--text);
 }
-.text-input::placeholder {
-  color: #bbb;
-}
+.text-input::placeholder { color: #bbb; }
 .submit-btn {
-  width: 100%;
-  height: 50px;
-  border: none;
-  border-radius: 25px;
-  background: linear-gradient(135deg, #ff6b35, #ff8c5a);
-  color: #fff;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 8px;
-  transition: opacity 0.2s, transform 0.15s;
+  width: 100%; height: 50px; border: none; border-radius: var(--radius-round);
+  background: var(--primary-gradient); color: #fff; font-size: 16px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  margin-top: 12px; transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 16px rgba(255,107,53,0.30);
 }
-.submit-btn:active {
-  transform: scale(0.98);
-}
-.submit-btn:disabled {
-  opacity: 0.7;
-}
-.login-tip {
-  text-align: center;
-  margin-top: 8px;
-}
-.login-tip p {
-  font-size: 11px; color: #bbb; margin: 0;
-}
+.submit-btn:hover { box-shadow: 0 6px 20px rgba(255,107,53,0.40); }
+.submit-btn:active { transform: scale(0.98); }
+.submit-btn:disabled { opacity: 0.6; box-shadow: none; }
 </style>

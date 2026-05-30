@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.waimai.service.push.OrderPushService;
 import com.waimai.common.Result;
 import com.waimai.common.constant.OrderStatus;
+import com.waimai.common.dto.ReportExceptionDTO;
+import com.waimai.common.entity.DeliveryException;
 import com.waimai.common.entity.DeliveryTrack;
 import com.waimai.common.entity.Order;
 import com.waimai.common.entity.Rider;
@@ -14,11 +16,13 @@ import com.waimai.common.utils.UserContext;
 import com.waimai.service.mapper.DeliveryTrackMapper;
 import com.waimai.service.mapper.OrderMapper;
 import com.waimai.service.service.DirectionService;
+import com.waimai.service.service.DisputeService;
 import com.waimai.service.service.DispatchService;
 import com.waimai.service.service.GeoService;
 import com.waimai.service.service.OrderService;
 import com.waimai.service.service.RiderIncomeService;
 import com.waimai.service.service.RiderService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -39,13 +43,15 @@ public class RiderController {
     private final RiderIncomeService riderIncomeService;
     private final DeliveryTrackMapper deliveryTrackMapper;
     private final DirectionService directionService;
+    private final DisputeService disputeService;
 
     public RiderController(RiderService riderService, GeoService geoService,
                            OrderPushService orderPushService, OrderService orderService,
                            OrderMapper orderMapper, DispatchService dispatchService,
                            RiderIncomeService riderIncomeService,
                            DeliveryTrackMapper deliveryTrackMapper,
-                           DirectionService directionService) {
+                           DirectionService directionService,
+                           DisputeService disputeService) {
         this.riderService = riderService;
         this.geoService = geoService;
         this.orderPushService = orderPushService;
@@ -55,6 +61,7 @@ public class RiderController {
         this.riderIncomeService = riderIncomeService;
         this.deliveryTrackMapper = deliveryTrackMapper;
         this.directionService = directionService;
+        this.disputeService = disputeService;
     }
 
     @PostMapping("/register")
@@ -243,6 +250,18 @@ public class RiderController {
             @RequestParam String origin,
             @RequestParam String destination) {
         return Result.ok(directionService.getDrivingRoute(origin, destination));
+    }
+
+    // ─── Exception Reporting ───────────────────────────────────────
+
+    @PostMapping("/exception/report")
+    public Result<DeliveryException> reportException(@Valid @RequestBody ReportExceptionDTO dto) {
+        return Result.ok(disputeService.reportException(currentRider().getId(), dto));
+    }
+
+    @GetMapping("/exception/list")
+    public Result<List<DeliveryException>> exceptionList() {
+        return Result.ok(disputeService.listExceptionsByRider(currentRider().getId()));
     }
 
     // ─── Helper ────────────────────────────────────────────────────

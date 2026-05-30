@@ -2,6 +2,9 @@ package com.waimai.api.controller;
 
 import com.waimai.common.Result;
 import com.waimai.common.dto.CreateDisputeDTO;
+import com.waimai.common.dto.ReportExceptionDTO;
+import com.waimai.common.dto.RequestRefundDTO;
+import com.waimai.common.entity.DeliveryException;
 import com.waimai.common.entity.OrderDispute;
 import com.waimai.common.utils.UserContext;
 import com.waimai.service.service.DisputeService;
@@ -42,6 +45,19 @@ public class DisputeController {
                 body.get("status"),
                 body.get("adminRemark"),
                 body.get("resolution"));
+        return Result.ok();
+    }
+
+    // ── Refund ─────────────────────────────────────────────
+
+    @PostMapping("/refund")
+    public Result<OrderDispute> requestRefund(@Valid @RequestBody RequestRefundDTO dto) {
+        return Result.ok(disputeService.requestRefund(UserContext.getUserId(), dto));
+    }
+
+    @PutMapping("/{id}/cancel")
+    public Result<?> cancelRefund(@PathVariable Long id) {
+        disputeService.cancelRefund(UserContext.getUserId(), id);
         return Result.ok();
     }
 }

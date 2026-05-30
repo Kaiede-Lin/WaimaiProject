@@ -11,7 +11,8 @@ const current = ref<any>({})
 const resolveForm = ref({ status: 'RESOLVED', adminRemark: '', resolution: '' })
 
 const statusMap: any = { PENDING: '待处理', INVESTIGATING: '调查中', RESOLVED: '已解决', REJECTED: '已驳回' }
-const typeMap: any = { WRONG_ITEM: '送错商品', MISSING_ITEM: '漏送商品', QUALITY_ISSUE: '质量问题', OTHER: '其他' }
+const typeMap: any = { WRONG_ITEM: '送错商品', MISSING_ITEM: '漏送商品', QUALITY_ISSUE: '质量问题', NOT_DELIVERED: '未送达', OTHER: '其他' }
+const refundStatusMap: any = { REQUESTED: '待商户处理', APPROVED: '已同意退款', REJECTED: '已拒绝退款' }
 
 function statusTag(s: string) {
   const types: any = { PENDING: 'warning', INVESTIGATING: '', RESOLVED: 'success', REJECTED: 'danger' }
@@ -62,6 +63,14 @@ onMounted(fetch)
         <template #default="{ row }">{{ typeMap[row.type] || row.type }}</template>
       </el-table-column>
       <el-table-column prop="description" label="描述" show-overflow-tooltip />
+      <el-table-column label="退款" width="110">
+        <template #default="{ row }">
+          <el-tag v-if="row.refundStatus" :type="row.refundStatus === 'APPROVED' ? 'success' : row.refundStatus === 'REJECTED' ? 'danger' : 'warning'" size="small">
+            {{ refundStatusMap[row.refundStatus] || row.refundStatus }}
+          </el-tag>
+          <span v-else style="color:#999;font-size:12px">-</span>
+        </template>
+      </el-table-column>
       <el-table-column label="状态" width="100">
         <template #default="{ row }">
           <el-tag :type="statusTag(row.status)">{{ statusMap[row.status] || row.status }}</el-tag>
@@ -78,6 +87,12 @@ onMounted(fetch)
         <el-descriptions-item label="状态">
           <el-tag :type="statusTag(current.status)">{{ statusMap[current.status] }}</el-tag>
         </el-descriptions-item>
+        <el-descriptions-item v-if="current.refundStatus" label="退款状态">
+          <el-tag :type="current.refundStatus === 'APPROVED' ? 'success' : current.refundStatus === 'REJECTED' ? 'danger' : 'warning'">
+            {{ refundStatusMap[current.refundStatus] || current.refundStatus }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item v-if="current.merchantRemark" label="商户备注">{{ current.merchantRemark }}</el-descriptions-item>
       </el-descriptions>
 
       <div style="margin-top: 20px">

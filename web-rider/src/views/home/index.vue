@@ -202,45 +202,30 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.home-page { padding-bottom: 50px; background: #f5f5f5; }
+.home-page { padding-bottom: 50px; }
 
 .audit-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  margin: 12px 8px;
-  padding: 16px;
-  border-radius: 12px;
+  display: flex; align-items: flex-start; gap: 12px;
+  margin: 12px 8px; padding: 16px; border-radius: var(--radius);
 }
-
 .audit-card.pending { background: #fff8e8; border: 1px solid #ffe0b0; }
 .audit-card.rejected { background: #fff0f0; border: 1px solid #ffcccc; }
-.audit-text h4 { font-size: 16px; color: #333; margin-bottom: 4px; }
+.audit-text h4 { font-size: 16px; color: var(--text); margin-bottom: 4px; }
 .audit-text p { font-size: 13px; color: #666; line-height: 1.5; }
 
 .rider-card {
-  background: linear-gradient(135deg, #07c160, #05a84d);
-  color: #fff;
-  margin: 8px;
-  padding: 16px;
-  border-radius: 12px;
+  background: var(--primary-gradient); color: #fff; margin: 8px; padding: 20px;
+  border-radius: var(--radius-lg); box-shadow: 0 8px 24px rgba(7,193,96,0.25);
 }
-
 .rider-top { display: flex; align-items: center; gap: 12px; }
 .rider-avatar { position: relative; }
 
 .online-dot {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #999;
-  border: 2px solid #fff;
+  position: absolute; bottom: 0; right: 0;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #999; border: 2px solid #fff; transition: background 0.3s;
 }
-
-.online-dot.on { background: #07c160; }
+.online-dot.on { background: #fff; box-shadow: 0 0 6px rgba(255,255,255,0.8); }
 .rider-info { flex: 1; }
 .rider-name { font-size: 16px; font-weight: 600; }
 .rider-level { display: flex; align-items: center; gap: 6px; font-size: 12px; margin-top: 2px; }
@@ -249,34 +234,30 @@ onUnmounted(() => {
 .toggle-text { display: block; font-size: 10px; margin-top: 2px; opacity: 0.8; }
 
 .rider-stats {
-  display: flex;
-  margin-top: 12px;
-  padding-top: 12px;
+  display: flex; margin-top: 12px; padding-top: 12px;
   border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
-
 .stat { flex: 1; text-align: center; }
 .num { font-size: 18px; font-weight: 700; display: block; }
 .lbl { font-size: 11px; opacity: 0.8; }
 
 .offline-tip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 8px;
-  padding: 12px 16px;
-  background: #fff7e8;
-  border-radius: 8px;
-  font-size: 13px;
-  color: #ff976a;
+  display: flex; align-items: center; gap: 8px; margin: 8px;
+  padding: 12px 16px; background: #fff7e8; border-radius: var(--radius-sm);
+  font-size: 13px; color: var(--warning);
 }
 
 .order-section { padding: 0 8px; }
 .section-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 4px 8px; }
-.section-header h4 { font-size: 15px; }
-.count { font-size: 12px; color: #999; }
+.section-header h4 { font-size: 15px; color: var(--text); }
+.count { font-size: 12px; color: var(--text-secondary); }
 
-.order-card { background: #fff; margin-bottom: 8px; padding: 12px; border-radius: 8px; }
+.order-card {
+  background: var(--card-bg); margin-bottom: 10px; padding: 14px;
+  border-radius: var(--radius); box-shadow: var(--shadow-sm);
+  transition: transform 0.15s;
+}
+.order-card:active { transform: scale(0.99); }
 .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .order-no { font-size: 13px; color: #666; }
 .order-fee { font-size: 18px; font-weight: 700; color: #ee0a24; }

@@ -212,31 +212,31 @@ onBeforeUnmount(() => {
 <style scoped>
 .home-page { padding-bottom: 50px; }
 .address-bar {
-  display: flex; align-items: center; gap: 6px; padding: 8px 16px;
+  display: flex; align-items: center; gap: 6px; padding: 10px 16px;
   background: linear-gradient(135deg, #e8f4ff, #f0f8ff); cursor: pointer;
-  margin: 0 8px; border-radius: 8px; font-size: 13px;
+  margin: 8px; border-radius: var(--radius); font-size: 13px;
+  box-shadow: var(--shadow-sm);
 }
-.address-text { flex: 1; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.search-bar { background: #fff; position: sticky; top: 46px; z-index: 10; }
-.filter-bar {
-  display: flex; gap: 0; padding: 0 16px 8px; font-size: 13px;
-}
-.filter-item {
-  flex: 1; text-align: center; color: #666; cursor: pointer; padding: 4px 0;
-}
-.filter-item.active { color: #409EFF; font-weight: 600; }
-.home-map { height: 200px; margin: 0 8px; border-radius: 8px; overflow: hidden; }
+.address-text { flex: 1; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.search-bar { background: var(--card-bg); position: sticky; top: 46px; z-index: 10; }
+.filter-bar { display: flex; gap: 0; padding: 0 16px 8px; font-size: 13px; }
+.filter-item { flex: 1; text-align: center; color: var(--text-secondary); cursor: pointer; padding: 4px 0; transition: color 0.2s; }
+.filter-item.active { color: var(--info); font-weight: 600; }
+.home-map { height: 200px; margin: 0 8px; border-radius: var(--radius); overflow: hidden; }
 .merchant-list { padding: 8px; }
 .merchant-card {
-  display: flex; gap: 12px; padding: 12px; background: #fff; border-radius: 8px; margin-bottom: 8px; cursor: pointer;
+  display: flex; gap: 12px; padding: 14px; background: var(--card-bg);
+  border-radius: var(--radius); margin-bottom: 10px; cursor: pointer;
+  box-shadow: var(--shadow-sm); transition: transform 0.15s, box-shadow 0.2s;
 }
+.merchant-card:active { transform: scale(0.99); box-shadow: var(--shadow); }
 .merchant-info { flex: 1; display: flex; flex-direction: column; gap: 4px; overflow: hidden; }
-.merchant-name { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
-.merchant-meta { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #999; }
+.merchant-name { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 6px; color: var(--text); }
+.merchant-meta { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
 .score-text { color: #ffc800; font-weight: 600; }
 .divider { color: #eee; }
-.merchant-footer { display: flex; align-items: center; gap: 12px; font-size: 11px; color: #999; }
+.merchant-footer { display: flex; align-items: center; gap: 12px; font-size: 11px; color: var(--text-secondary); }
 .delivery-fee { color: #666; }
-.distance { color: #409EFF; font-weight: 500; margin-left: auto; }
+.distance { color: var(--info); font-weight: 500; margin-left: auto; }
 .merchant-desc { font-size: 11px; color: #aaa; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 </style>

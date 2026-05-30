@@ -60,7 +60,11 @@ public class CouponServiceImpl implements CouponService {
                 .and(w -> w.isNull(Coupon::getMerchantId).or().eq(Coupon::getMerchantId, merchantId)));
 
         // Filter: received < total
-        coupons.removeIf(c -> c.getReceivedCount() >= c.getTotalCount());
+        coupons.removeIf(c -> {
+            int rc = c.getReceivedCount() != null ? c.getReceivedCount() : 0;
+            int tc = c.getTotalCount() != null ? c.getTotalCount() : 0;
+            return rc >= tc;
+        });
 
         List<Long> userCouponIds = userCouponMapper.selectList(
                 new LambdaQueryWrapper<UserCoupon>().eq(UserCoupon::getUserId, userId))
@@ -86,20 +90,26 @@ public class CouponServiceImpl implements CouponService {
     public UserCoupon receiveCoupon(Long userId, Long couponId) {
         Coupon coupon = couponMapper.selectById(couponId);
         if (coupon == null || coupon.getStatus() != 1) throw new BusinessException("优惠券不存在或已下架");
-        if (coupon.getReceivedCount() >= coupon.getTotalCount()) throw new BusinessException("优惠券已被抢光");
+
+        int received = coupon.getReceivedCount() != null ? coupon.getReceivedCount() : 0;
+        int total = coupon.getTotalCount() != null ? coupon.getTotalCount() : 0;
+        if (received >= total) throw new BusinessException("优惠券已被抢光");
 
         long count = userCouponMapper.selectCount(new LambdaQueryWrapper<UserCoupon>()
                 .eq(UserCoupon::getUserId, userId).eq(UserCoupon::getCouponId, couponId));
         if (count > 0) throw new BusinessException("已领取过该优惠券");
 
-        coupon.setReceivedCount(coupon.getReceivedCount() + 1);
+        coupon.setReceivedCount(received + 1);
         couponMapper.updateById(coupon);
 
+        int validDays = coupon.getValidDays() != null ? coupon.getValidDays() : 7;
+        LocalDateTime now = LocalDateTime.now();
         UserCoupon uc = new UserCoupon();
         uc.setUserId(userId);
         uc.setCouponId(couponId);
         uc.setStatus("UNUSED");
-        uc.setExpireTime(LocalDateTime.now().plusDays(coupon.getValidDays()));
+        uc.setReceiveTime(now);
+        uc.setExpireTime(now.plusDays(validDays));
         userCouponMapper.insert(uc);
         return uc;
     }
@@ -171,7 +181,8 @@ public class CouponServiceImpl implements CouponService {
         uc.setUseTime(LocalDateTime.now());
         userCouponMapper.updateById(uc);
 
-        coupon.setUsedCount(coupon.getUsedCount() + 1);
+        int used = coupon.getUsedCount() != null ? coupon.getUsedCount() : 0;
+        coupon.setUsedCount(used + 1);
         couponMapper.updateById(coupon);
 
         return discount;

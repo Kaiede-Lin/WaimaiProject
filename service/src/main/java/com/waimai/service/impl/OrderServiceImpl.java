@@ -237,6 +237,14 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         rollbackOrderInventory(order);
     }
 
+    @Override
+    public void rollbackInventory(Long orderId) {
+        Order order = getById(orderId);
+        if (order != null) {
+            rollbackOrderInventory(order);
+        }
+    }
+
     private void rollbackOrderInventory(Order order) {
         List<OrderDetail> details = orderDetailMapper.selectList(
                 new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OrderDetail>()

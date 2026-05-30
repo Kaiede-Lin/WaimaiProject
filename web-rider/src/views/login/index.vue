@@ -93,11 +93,6 @@ onMounted(() => {
           立即登录
         </button>
       </van-form>
-
-      <div class="login-tip">
-        <van-divider>体验说明</van-divider>
-        <p>输入任意11位手机号即可模拟登录，首次使用请先注册</p>
-      </div>
     </div>
   </div>
 </template>
@@ -105,61 +100,77 @@ onMounted(() => {
 <style scoped>
 .login-page {
   min-height: 100vh;
-  background: linear-gradient(160deg, #07c160 0%, #05a84d 30%, #e0ffe8 60%, #fff 100%);
+  background: linear-gradient(160deg, var(--primary) 0%, #05a84d 30%, var(--primary-light) 60%, #fff 100%);
   display: flex; align-items: center; justify-content: center; padding: 20px;
 }
 .login-card {
-  width: 100%; max-width: 380px; background: #fff; border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(7, 193, 96, 0.12); padding: 32px 24px 24px; overflow: hidden;
+  width: 100%; max-width: 380px; background: var(--card-bg);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 36px 28px 28px;
+  animation: slideUp 0.5s ease;
 }
-.logo-area { text-align: center; margin-bottom: 20px; }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.logo-area { text-align: center; margin-bottom: 24px; }
 .logo-circle {
-  width: 72px; height: 72px; border-radius: 50%;
-  background: linear-gradient(135deg, #07c160, #05a84d);
-  display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;
+  width: 76px; height: 76px; border-radius: 50%;
+  background: var(--primary-gradient);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 14px;
+  box-shadow: 0 8px 24px rgba(7,193,96,0.25);
+  animation: pulse 2s ease-in-out infinite;
 }
-.logo-area h2 { font-size: 22px; font-weight: 700; color: #1a1a1a; margin: 0 0 4px; }
-.logo-area p { font-size: 13px; color: #999; margin: 0; }
-.login-form { margin-top: 20px; }
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 8px 24px rgba(7,193,96,0.25); }
+  50% { box-shadow: 0 8px 32px rgba(7,193,96,0.40); }
+}
+.logo-area h2 { font-size: 22px; font-weight: 700; color: var(--text); margin: 0 0 4px; }
+.logo-area p { font-size: 13px; color: var(--text-secondary); margin: 0; letter-spacing: 1px; }
+.login-form { margin-top: 24px; }
 .field-wrapper {
-  display: flex; align-items: center; background: #f8f8f8; border-radius: 12px;
+  display: flex; align-items: center; background: #f8f8f8; border-radius: var(--radius);
   margin-bottom: 14px; padding: 0 14px; border: 2px solid transparent;
-  transition: border-color 0.25s, background 0.25s;
+  transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
 }
-.field-wrapper:focus-within { border-color: #07c160; background: #fff; }
+.field-wrapper:focus-within {
+  border-color: var(--primary); background: #fff;
+  box-shadow: 0 0 0 4px rgba(7,193,96,0.08);
+}
 .field-icon { width: 32px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .text-input {
   flex: 1; height: 50px; border: none; outline: none; background: transparent;
-  font-size: 15px; color: #333;
+  font-size: 15px; color: var(--text);
 }
 .text-input::placeholder { color: #bbb; }
 
 .status-block { margin-bottom: 14px; }
 .status-notice {
-  display: flex; align-items: flex-start; gap: 8px; padding: 12px; border-radius: 10px;
+  display: flex; align-items: flex-start; gap: 8px; padding: 12px; border-radius: var(--radius-sm);
   font-size: 13px; margin-bottom: 8px;
 }
 .status-notice.warning { background: #fff8e8; color: #b87a14; }
 .status-notice.error { background: #fff0f0; color: #c0392b; }
 .not-registered-box {
-  text-align: center; padding: 20px; background: #e8fff0; border-radius: 12px;
+  text-align: center; padding: 20px; background: var(--primary-light); border-radius: var(--radius);
 }
 .not-registered-box p { font-size: 13px; color: #1a7a3a; margin: 8px 0; }
 .register-link {
-  background: none; border: none; color: #07c160; font-size: 14px; font-weight: 600;
-  cursor: pointer; text-decoration: underline;
+  background: none; border: none; color: var(--primary); font-size: 14px; font-weight: 600;
+  cursor: pointer; text-decoration: none; padding: 6px 16px;
+  border-radius: var(--radius-round); background: #fff;
+  box-shadow: var(--shadow-sm); transition: transform 0.15s;
 }
+.register-link:active { transform: scale(0.96); }
 
 .submit-btn {
-  width: 100%; height: 50px; border: none; border-radius: 25px;
-  background: linear-gradient(135deg, #07c160, #05a84d); color: #fff;
-  font-size: 16px; font-weight: 600; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; margin-top: 8px;
-  transition: opacity 0.2s, transform 0.15s;
+  width: 100%; height: 50px; border: none; border-radius: var(--radius-round);
+  background: var(--primary-gradient); color: #fff; font-size: 16px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  margin-top: 12px; transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 16px rgba(7,193,96,0.30);
 }
+.submit-btn:hover { box-shadow: 0 6px 20px rgba(7,193,96,0.40); }
 .submit-btn:active { transform: scale(0.98); }
-.submit-btn:disabled { opacity: 0.7; }
-
-.login-tip { text-align: center; margin-top: 8px; }
-.login-tip p { font-size: 11px; color: #bbb; margin: 0; }
+.submit-btn:disabled { opacity: 0.6; box-shadow: none; }
 </style>

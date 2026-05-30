@@ -5,9 +5,12 @@ com\waimai\common\vo\OrderVO.class
 com\waimai\common\vo\MerchantReportVO.class
 com\waimai\common\dto\LoginDTO.class
 com\waimai\common\vo\RiderNearbyVO.class
+com\waimai\common\dto\RequestRefundDTO.class
 com\waimai\common\dto\OrderItemDTO.class
+com\waimai\common\entity\DeliveryException.class
 com\waimai\common\utils\IdCardUtil.class
 com\waimai\common\vo\LoginVO.class
+com\waimai\common\constant\DeliveryExceptionStatus.class
 com\waimai\common\dto\JointDeliveryDispatchDTO.class
 com\waimai\common\entity\Category.class
 com\waimai\common\vo\CartVO.class
@@ -21,6 +24,7 @@ com\waimai\common\dto\WsMessage.class
 com\waimai\common\entity\Dish.class
 com\waimai\common\entity\OrderDispute.class
 com\waimai\common\entity\Merchant.class
+com\waimai\common\dto\ReportExceptionDTO.class
 com\waimai\common\dto\PlaceOrderDTO.class
 com\waimai\common\entity\Rider.class
 com\waimai\common\entity\UserCoupon.class

@@ -28,6 +28,7 @@ com\waimai\service\mapper\CategoryMapper.class
 com\waimai\service\mapper\DeliveryTrackMapper.class
 com\waimai\service\impl\JointDeliveryServiceImpl.class
 com\waimai\service\config\RabbitMQConfig.class
+com\waimai\service\mapper\DeliveryExceptionMapper.class
 com\waimai\service\service\OvertimeWarningService.class
 com\waimai\service\impl\DishServiceImpl.class
 com\waimai\service\impl\CouponServiceImpl.class

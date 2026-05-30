@@ -4,5 +4,5 @@ import { resolve } from 'path'
 export default defineConfig({
   plugins: [vue()],
   resolve: { alias: { '@': resolve(__dirname, 'src') } },
-  server: { port: 5175, proxy: { '/api': { target: 'http://localhost:8080', changeOrigin: true }, '/ws': { target: 'ws://localhost:8080', ws: true } } }
+  server: { port: 5175, proxy: { '/api': { target: 'http://localhost:8080', changeOrigin: true }, '/ws': { target: 'ws://localhost:8080', ws: true }, '/uploads': { target: 'http://localhost:8080', changeOrigin: true } } }
 })

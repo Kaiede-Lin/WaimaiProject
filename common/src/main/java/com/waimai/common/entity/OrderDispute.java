@@ -15,6 +15,9 @@ public class OrderDispute {
     private String description;
     private String images;
     private String status;
+    private String refundStatus;
+    private String merchantRemark;
+    private String previousStatus;
     private String adminRemark;
     private String resolution;
     @TableField(fill = FieldFill.INSERT)

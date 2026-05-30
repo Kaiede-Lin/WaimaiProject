@@ -172,6 +172,15 @@ public class ReviewServiceImpl extends ServiceImpl<ReviewMapper, Review> impleme
                 .eq(Review::getUserId, userId));
     }
 
+    @Override
+    public Page<ReviewVO> listByUser(Long userId, int page, int size) {
+        Page<Review> reviewPage = reviewMapper.selectPage(new Page<>(page, size),
+                new LambdaQueryWrapper<Review>()
+                        .eq(Review::getUserId, userId)
+                        .orderByDesc(Review::getCreateTime));
+        return convertToVOPage(reviewPage);
+    }
+
     private Page<ReviewVO> convertToVOPage(Page<Review> reviewPage) {
         Page<ReviewVO> voPage = new Page<>(reviewPage.getCurrent(), reviewPage.getSize(), reviewPage.getTotal());
         voPage.setRecords(reviewPage.getRecords().stream().map(r -> {

@@ -14,4 +14,6 @@ public interface ReviewService {
     Page<ReviewVO> listByRider(Long riderId, int page, int size);
     Map<String, Object> getRatingSummary(Long targetId, String type);
     List<Review> getOrderReviews(Long orderId, Long userId);
+
+    Page<ReviewVO> listByUser(Long userId, int page, int size);
 }

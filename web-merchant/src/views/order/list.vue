@@ -1,19 +1,22 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { showToast, showConfirmDialog } from 'vant'
 import request from '@/utils/request'
 
+const router = useRouter()
 const orders = ref<any[]>([])
+const disputes = ref<any[]>([])
 const loading = ref(false)
 const tab = ref(0)
 
 const statusMap: any = {
   PAID: '待接单', PREPARING: '备餐中', DELIVERING: '配送中',
-  COMPLETED: '已完成', CANCELLED: '已取消'
+  COMPLETED: '已完成', CANCELLED: '已取消', REFUNDING: '退款中', REFUNDED: '已退款'
 }
 const statusColor: any = {
   PAID: 'danger', PREPARING: 'warning', DELIVERING: 'primary',
-  COMPLETED: 'success', CANCELLED: 'default'
+  COMPLETED: 'success', CANCELLED: 'default', REFUNDING: 'warning', REFUNDED: 'danger'
 }
 
 async function fetch() {
@@ -25,14 +28,28 @@ async function fetch() {
   loading.value = false
 }
 
+async function fetchDisputes() {
+  try {
+    const res: any = await request.get('/merchant/dispute/list')
+    disputes.value = res.data || []
+  } catch {}
+}
+
+function hasDispute(orderId: number) {
+  return disputes.value.some((d: any) => d.orderId === orderId)
+}
+
 const filtered = computed(() => {
   if (tab.value === 0) return orders.value.filter((o: any) => o.status === 'PAID')
   if (tab.value === 1) return orders.value.filter((o: any) => o.status === 'PREPARING' || o.status === 'DELIVERING')
-  return orders.value.filter((o: any) => o.status === 'COMPLETED' || o.status === 'CANCELLED')
+  if (tab.value === 2) return orders.value.filter((o: any) => o.status === 'COMPLETED' || o.status === 'CANCELLED')
+  // tab 3: 退款/纠纷
+  return orders.value.filter((o: any) => o.status === 'REFUNDING' || o.status === 'REFUNDED' || hasDispute(o.id))
 })
 
 const pendingCount = computed(() => orders.value.filter((o: any) => o.status === 'PAID').length)
 const activeCount = computed(() => orders.value.filter((o: any) => o.status === 'PREPARING' || o.status === 'DELIVERING').length)
+const disputeCount = computed(() => orders.value.filter((o: any) => o.status === 'REFUNDING' || hasDispute(o.id)).length)
 
 async function acceptOrder(id: number) {
   await request.post(`/merchant/order/${id}/accept`)
@@ -53,7 +70,14 @@ async function completeOrder(id: number) {
   fetch()
 }
 
-onMounted(fetch)
+function viewDetail(id: number) {
+  router.push(`/order/${id}`)
+}
+
+onMounted(() => {
+  fetch()
+  fetchDisputes()
+})
 </script>
 
 <template>
@@ -70,13 +94,17 @@ onMounted(fetch)
       </van-tab>
       <van-tab :title="'进行中 (' + activeCount + ')'" />
       <van-tab title="已完成" />
+      <van-tab :title="'纠纷 (' + disputeCount + ')'" />
     </van-tabs>
 
     <van-pull-refresh v-model="loading" @refresh="fetch">
-      <div v-for="o in filtered" :key="o.id" class="order-card">
+      <div v-for="o in filtered" :key="o.id" class="order-card" @click="viewDetail(o.id)">
         <div class="order-head">
           <span class="order-no">#{{ o.orderNo?.substring(o.orderNo.length - 8) }}</span>
-          <van-tag :type="statusColor[o.status]" size="small">{{ statusMap[o.status] || o.status }}</van-tag>
+          <div style="display:flex;gap:6px;align-items:center">
+            <van-tag v-if="hasDispute(o.id)" type="warning" size="mini">纠纷</van-tag>
+            <van-tag :type="statusColor[o.status]" size="small">{{ statusMap[o.status] || o.status }}</van-tag>
+          </div>
         </div>
         <div class="order-details" v-if="o.details">
           <span v-for="d in o.details?.slice(0, 4)" :key="d.dishId" class="dish-tag">{{ d.dishName }} x{{ d.quantity }}</span>

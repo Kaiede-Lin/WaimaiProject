@@ -47,7 +47,7 @@ public class CouponController {
         return Result.ok(couponService.availableCoupons(UserContext.getUserId(), merchantId, orderAmount));
     }
 
-    @PostMapping("/api/coupon/receive/{couponId}")
+    @RequestMapping(value = "/api/coupon/receive/{couponId}", method = {RequestMethod.GET, RequestMethod.POST})
     public Result<?> receive(@PathVariable Long couponId) {
         couponService.receiveCoupon(UserContext.getUserId(), couponId);
         return Result.ok();

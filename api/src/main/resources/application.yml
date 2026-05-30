@@ -12,6 +12,13 @@ spring:
   application:
     name: waimai-backend
 
+  # ==================== File Upload ====================
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 20MB
+
   # ==================== MySQL 8.x ====================
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -81,6 +88,8 @@ springdoc:
 
 # ==================== App Config ====================
 app:
+  upload:
+    dir: ./uploads          # 图片上传目录（相对路径相对于 user.dir，或配置绝对路径）
   map:
     provider: amap    # 高德地图
     api-key: 4243b183d6b1342584f1e058ea9b7e47

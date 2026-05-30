@@ -9,9 +9,16 @@ const activeCat = ref<number>(0)
 const showCatDialog = ref(false)
 const showDishPopup = ref(false)
 const catForm = ref({ name: '', sort: 0 })
-const dishForm = ref<any>({ name: '', price: '', originalPrice: '', stock: '', categoryId: 0, summary: '', image: '' })
+const dishForm = ref<any>({
+  name: '', price: '', originalPrice: '', stock: '',
+  categoryId: 0, summary: '', image: ''
+})
 const editingDish = ref<any>(null)
 const saving = ref(false)
+const uploading = ref(false)
+const imageFile = ref<File | null>(null)
+const imagePreviewUrl = ref<string>('')
+const fileInputRef = ref<HTMLInputElement | null>(null)
 
 const realCategories = computed(() => categories.value.filter(c => c.id !== 0))
 
@@ -26,7 +33,9 @@ async function fetchDishes() {
 }
 
 function filteredDishes() {
-  return activeCat.value === 0 ? dishes.value : dishes.value.filter((d: any) => d.categoryId === activeCat.value)
+  return activeCat.value === 0
+    ? dishes.value
+    : dishes.value.filter((d: any) => d.categoryId === activeCat.value)
 }
 
 async function addCategory() {
@@ -40,14 +49,61 @@ async function addCategory() {
   } catch { /* handled */ }
 }
 
+function triggerFileInput() {
+  fileInputRef.value?.click()
+}
+
+function handleFileChange(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  // Validate file type
+  if (!file.type.startsWith('image/')) {
+    showToast('只能选择图片文件')
+    return
+  }
+
+  // Validate file size (max 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('图片大小不能超过5MB')
+    return
+  }
+
+  imageFile.value = file
+  // Create local preview
+  imagePreviewUrl.value = URL.createObjectURL(file)
+  // Clear previous uploaded URL so we know to upload on save
+  dishForm.value.image = ''
+}
+
+function removeImage() {
+  imageFile.value = null
+  imagePreviewUrl.value = ''
+  dishForm.value.image = ''
+  if (fileInputRef.value) {
+    fileInputRef.value.value = ''
+  }
+}
+
 function openDishForm(dish?: any) {
+  removeImage()
   if (dish) {
     dishForm.value = {
-      name: dish.name, price: String(dish.price || ''), originalPrice: String(dish.originalPrice || ''),
-      stock: String(dish.stock || 0), categoryId: dish.categoryId, summary: dish.summary || '',
-      image: dish.image || '', status: dish.status
+      name: dish.name,
+      price: String(dish.price || ''),
+      originalPrice: String(dish.originalPrice || ''),
+      stock: String(dish.stock || 0),
+      categoryId: dish.categoryId,
+      summary: dish.summary || '',
+      image: dish.image || '',
+      status: dish.status
     }
     editingDish.value = dish
+    // If dish has an existing image, show it as preview
+    if (dish.image) {
+      imagePreviewUrl.value = dish.image
+    }
   } else {
     const defaultCat = activeCat.value > 0 ? activeCat.value : (realCategories.value[0]?.id || 0)
     dishForm.value = {
@@ -59,6 +115,26 @@ function openDishForm(dish?: any) {
   showDishPopup.value = true
 }
 
+async function uploadImage(): Promise<string | null> {
+  if (!imageFile.value) return null
+
+  uploading.value = true
+  try {
+    const formData = new FormData()
+    formData.append('file', imageFile.value)
+
+    const res: any = await request.post('/merchant/upload/image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    return res.data?.url || null
+  } catch {
+    showToast('图片上传失败')
+    return null
+  } finally {
+    uploading.value = false
+  }
+}
+
 async function saveDish() {
   if (!dishForm.value.name) { showToast('请输入菜品名称'); return }
   const price = Number(dishForm.value.price)
@@ -67,17 +143,29 @@ async function saveDish() {
   if (!catId || catId <= 0) { showToast('请选择分类'); return }
 
   saving.value = true
-  const payload = {
-    name: dishForm.value.name,
-    price: price,
-    originalPrice: Number(dishForm.value.originalPrice || 0),
-    stock: Number(dishForm.value.stock || 0),
-    categoryId: catId,
-    summary: dishForm.value.summary || '',
-    image: dishForm.value.image || ''
-  }
 
   try {
+    // Upload image first if a new file was selected
+    let imageUrl = dishForm.value.image
+    if (imageFile.value) {
+      const uploadedUrl = await uploadImage()
+      if (!uploadedUrl) {
+        saving.value = false
+        return
+      }
+      imageUrl = uploadedUrl
+    }
+
+    const payload = {
+      name: dishForm.value.name,
+      price: price,
+      originalPrice: Number(dishForm.value.originalPrice || 0),
+      stock: Number(dishForm.value.stock || 0),
+      categoryId: catId,
+      summary: dishForm.value.summary || '',
+      image: imageUrl || ''
+    }
+
     if (editingDish.value) {
       await request.put(`/merchant/dish/${editingDish.value.id}`, payload)
     } else {
@@ -124,9 +212,14 @@ onMounted(() => { fetchCategories(); fetchDishes() })
     </van-tabs>
 
     <div class="dish-list">
-      <div v-for="dish in filteredDishes()" :key="dish.id" :class="['dish-row', { disabled: dish.status !== 1 }]">
+      <div
+        v-for="dish in filteredDishes()"
+        :key="dish.id"
+        :class="['dish-row', { disabled: dish.status !== 1 }]"
+      >
         <div class="dish-img-pl">
-          <van-icon name="photo-o" size="24" color="#ccc" />
+          <img v-if="dish.image" :src="dish.image" class="dish-thumb" alt="" />
+          <van-icon v-else name="photo-o" size="24" color="#ccc" />
         </div>
         <div class="dish-info">
           <div class="dish-name">
@@ -167,14 +260,46 @@ onMounted(() => { fetchCategories(); fetchDishes() })
             <van-field v-model="dishForm.originalPrice" label="原价" type="digit" placeholder="划线价，选填" />
             <van-field v-model="dishForm.stock" label="库存" type="digit" placeholder="库存数量" />
             <van-field v-model="dishForm.summary" label="简介" placeholder="简单描述菜品" />
-            <van-field v-model="dishForm.image" label="图片" placeholder="图片URL，选填" />
+
+            <!-- Image upload -->
+            <div class="upload-cell">
+              <span class="upload-label">菜品图片</span>
+              <div class="upload-area" @click="triggerFileInput">
+                <div v-if="imagePreviewUrl" class="image-preview-wrapper">
+                  <img :src="imagePreviewUrl" class="image-preview" alt="" />
+                  <div class="image-overlay">
+                    <span>点击更换</span>
+                  </div>
+                </div>
+                <div v-else class="upload-placeholder">
+                  <van-icon name="photograph" size="28" color="#bbb" />
+                  <span>点击上传</span>
+                </div>
+              </div>
+              <van-icon
+                v-if="imagePreviewUrl"
+                name="clear"
+                size="18"
+                color="#ee0a24"
+                class="remove-img-btn"
+                @click.stop="removeImage"
+              />
+              <input
+                ref="fileInputRef"
+                type="file"
+                accept="image/*"
+                style="display:none"
+                @change="handleFileChange"
+              />
+            </div>
           </van-cell-group>
 
           <div class="cat-select">
             <span class="cat-label">选择分类：</span>
             <div class="cat-chips">
               <span
-                v-for="cat in realCategories" :key="cat.id"
+                v-for="cat in realCategories"
+                :key="cat.id"
                 :class="['cat-chip', { active: dishForm.categoryId === cat.id }]"
                 @click="dishForm.categoryId = cat.id"
               >{{ cat.name }}</span>
@@ -183,7 +308,13 @@ onMounted(() => { fetchCategories(); fetchDishes() })
           </div>
 
           <div class="form-submit">
-            <van-button round block type="primary" native-type="submit" :loading="saving" color="#ff6b35">
+            <van-button
+              round block type="primary"
+              native-type="submit"
+              :loading="saving || uploading"
+              :loading-text="uploading ? '图片上传中...' : '保存中...'"
+              color="#ff6b35"
+            >
               {{ editingDish ? '保存修改' : '确认添加' }}
             </van-button>
           </div>
@@ -201,43 +332,238 @@ onMounted(() => { fetchCategories(); fetchDishes() })
 </template>
 
 <style scoped>
-.menu-page { padding-bottom: 50px; background: #f5f5f5; }
+.menu-page {
+  padding-bottom: 50px;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
 .menu-header {
-  display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #fff;
 }
-.dish-count { margin-left: auto; font-size: 12px; color: #999; }
 
-.dish-list { padding: 8px; }
+.dish-count {
+  margin-left: auto;
+  font-size: 12px;
+  color: #999;
+}
+
+.dish-list {
+  padding: 8px;
+}
+
 .dish-row {
-  display: flex; gap: 10px; padding: 10px; background: #fff; border-radius: 8px;
-  margin-bottom: 8px; align-items: center;
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  background: #fff;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  align-items: center;
 }
-.dish-row.disabled { opacity: 0.6; }
+
+.dish-row.disabled {
+  opacity: 0.6;
+}
+
 .dish-img-pl {
-  width: 48px; height: 48px; border-radius: 6px; background: #f5f5f5;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 6px;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
 }
-.dish-info { flex: 1; min-width: 0; }
-.dish-name { font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.dish-meta { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-top: 2px; }
-.price { color: #ee0a24; font-weight: 600; font-size: 14px; }
-.orig { color: #bbb; text-decoration: line-through; font-size: 11px; }
-.stock { color: #666; }
-.cat-label { color: #409EFF; font-size: 11px; }
-.dish-actions { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; flex-shrink: 0; }
 
-.dish-form { padding: 20px 0 40px; }
-.dish-form h3 { text-align: center; font-size: 17px; margin-bottom: 16px; }
+.dish-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
-.cat-select { padding: 12px 16px; }
-.cat-label { font-size: 13px; color: #666; margin-bottom: 8px; display: block; }
-.cat-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.dish-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.dish-name {
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.dish-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.price {
+  color: #ee0a24;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.orig {
+  color: #bbb;
+  text-decoration: line-through;
+  font-size: 11px;
+}
+
+.stock {
+  color: #666;
+}
+
+.cat-label {
+  color: #409eff;
+  font-size: 11px;
+}
+
+.dish-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.dish-form {
+  padding: 20px 0 40px;
+}
+
+.dish-form h3 {
+  text-align: center;
+  font-size: 17px;
+  margin-bottom: 16px;
+}
+
+/* Image upload */
+.upload-cell {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  gap: 12px;
+}
+
+.upload-label {
+  font-size: 14px;
+  color: #323233;
+  flex-shrink: 0;
+  width: 4em;
+}
+
+.upload-area {
+  width: 90px;
+  height: 90px;
+  border-radius: 8px;
+  border: 1px dashed #ddd;
+  overflow: hidden;
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.upload-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #bbb;
+  background: #fafafa;
+}
+
+.image-preview-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.image-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  font-size: 10px;
+  text-align: center;
+  padding: 4px 0;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.image-preview-wrapper:hover .image-overlay {
+  opacity: 1;
+}
+
+.remove-img-btn {
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Category select */
+.cat-select {
+  padding: 12px 16px;
+}
+
+.cat-label {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.cat-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .cat-chip {
-  padding: 6px 16px; border-radius: 20px; background: #f5f5f5; font-size: 13px;
-  cursor: pointer; border: 2px solid transparent;
+  padding: 6px 16px;
+  border-radius: 20px;
+  background: #f5f5f5;
+  font-size: 13px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s;
 }
-.cat-chip.active { background: #fff0e8; border-color: #ff6b35; color: #ff6b35; font-weight: 600; }
-.no-cat { font-size: 12px; color: #ee0a24; }
 
-.form-submit { padding: 16px; }
+.cat-chip.active {
+  background: #fff0e8;
+  border-color: #ff6b35;
+  color: #ff6b35;
+  font-weight: 600;
+}
+
+.no-cat {
+  font-size: 12px;
+  color: #ee0a24;
+}
+
+.form-submit {
+  padding: 16px;
+}
 </style>

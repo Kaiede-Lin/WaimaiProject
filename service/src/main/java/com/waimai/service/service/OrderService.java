@@ -24,4 +24,6 @@ public interface OrderService extends IService<Order> {
     Page<Order> listByMerchant(Long merchantId, int page, int size);
 
     void acceptOrder(Long orderId, Long merchantId);
+
+    void rollbackInventory(Long orderId);
 }

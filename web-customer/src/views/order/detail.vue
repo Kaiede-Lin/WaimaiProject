@@ -1,19 +1,31 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { showToast } from 'vant'
+import { showToast, showConfirmDialog } from 'vant'
 import request from '@/utils/request'
 
 const route = useRoute()
 const router = useRouter()
 const order = ref<any>({})
+const dispute = ref<any>(null)
 const reviewForm = ref({ merchantRating: 5, merchantContent: '', riderRating: 5, riderContent: '' })
 const showReview = ref(false)
+const showRefund = ref(false)
+const refundForm = ref({ type: 'OTHER', description: '' })
+const submittingRefund = ref(false)
 
 const statusMap: any = {
   PENDING_PAYMENT: '待支付', PAID: '已支付', PREPARING: '备餐中',
-  ACCEPTED: '已接单', DELIVERING: '配送中', COMPLETED: '已完成', CANCELLED: '已取消'
+  ACCEPTED: '已接单', DELIVERING: '配送中', COMPLETED: '已完成', CANCELLED: '已取消',
+  REFUNDING: '退款中', REFUNDED: '已退款'
 }
+
+const refundTypeMap: any = {
+  WRONG_ITEM: '送错商品', MISSING_ITEM: '漏送商品',
+  QUALITY_ISSUE: '质量问题', NOT_DELIVERED: '未送达', OTHER: '其他'
+}
+
+const refundableStatuses = ['PAID', 'PREPARING', 'ACCEPTED', 'DELIVERING', 'COMPLETED']
 
 const statusStep = computed(() => {
   const s = order.value.status
@@ -22,7 +34,7 @@ const statusStep = computed(() => {
   if (s === 'PREPARING') return 2
   if (s === 'ACCEPTED') return 3
   if (s === 'DELIVERING') return 4
-  if (s === 'COMPLETED') return 5
+  if (s === 'COMPLETED' || s === 'REFUNDED') return 5
   return -1
 })
 
@@ -30,6 +42,14 @@ async function fetch() {
   try {
     const res: any = await request.get(`/order/${route.params.id}`)
     order.value = res.data || {}
+  } catch {}
+}
+
+async function fetchDispute() {
+  try {
+    const res: any = await request.get('/dispute/my')
+    const list = res.data || []
+    dispute.value = list.find((d: any) => d.orderId === order.value.id) || null
   } catch {}
 }
 
@@ -45,6 +65,39 @@ async function payOrder() {
   fetch()
 }
 
+async function submitRefund() {
+  if (!refundForm.value.description) { showToast('请填写退款原因'); return }
+  submittingRefund.value = true
+  try {
+    await request.post('/dispute/refund', {
+      orderId: order.value.id,
+      type: refundForm.value.type,
+      description: refundForm.value.description
+    })
+    showToast('退款申请已提交')
+    showRefund.value = false
+    fetch()
+    fetchDispute()
+  } catch {}
+  submittingRefund.value = false
+}
+
+async function cancelRefund() {
+  if (!dispute.value) return
+  try {
+    await showConfirmDialog({ title: '确认取消退款申请？' })
+    await request.put(`/dispute/${dispute.value.id}/cancel`)
+    showToast('退款申请已取消')
+    fetch()
+    fetchDispute()
+  } catch {}
+}
+
+function getRefundStatusText(s: string) {
+  const map: any = { REQUESTED: '待商户处理', APPROVED: '已同意退款', REJECTED: '已拒绝退款' }
+  return map[s] || s
+}
+
 async function submitReview() {
   await request.post('/review/submit', {
     orderId: order.value.id,
@@ -58,7 +111,10 @@ async function submitReview() {
   fetch()
 }
 
-onMounted(fetch)
+onMounted(async () => {
+  await fetch()
+  await fetchDispute()
+})
 </script>
 
 <template>
@@ -133,11 +189,37 @@ onMounted(fetch)
       <van-cell title="下单时间" :value="order.createTime?.substring(0, 16)" />
     </van-cell-group>
 
+    <!-- Dispute / Refund Status -->
+    <div v-if="dispute" class="dispute-card">
+      <van-cell-group inset title="退款/纠纷信息">
+        <van-cell title="纠纷类型" :value="refundTypeMap[dispute.type] || dispute.type" />
+        <van-cell title="退款状态" :value="getRefundStatusText(dispute.refundStatus)" />
+        <van-cell title="申请原因" :value="dispute.description" label="description" />
+        <van-cell v-if="dispute.merchantRemark" title="商户备注" :value="dispute.merchantRemark" />
+        <van-cell v-if="dispute.resolution" title="处理结果" :value="dispute.resolution" />
+      </van-cell-group>
+    </div>
+
     <div class="actions">
       <van-button v-if="order.status === 'PENDING_PAYMENT'" type="danger" round @click="cancelOrder">取消订单</van-button>
       <van-button v-if="order.status === 'PENDING_PAYMENT'" type="primary" round @click="payOrder">立即支付</van-button>
+      <van-button v-if="refundableStatuses.includes(order.status) && !dispute" type="warning" round @click="showRefund = true">申请退款</van-button>
+      <van-button v-if="dispute && dispute.refundStatus === 'REQUESTED'" type="default" round @click="cancelRefund">取消退款</van-button>
       <van-button v-if="order.status === 'COMPLETED' && !showReview" type="primary" round @click="showReview = true">评价</van-button>
     </div>
+
+    <!-- Refund Dialog -->
+    <van-dialog v-model:show="showRefund" title="申请退款" show-cancel-button @confirm="submitRefund" :confirm-loading="submittingRefund">
+      <div class="refund-form-inner">
+        <div class="refund-type-label">退款原因</div>
+        <div class="refund-types">
+          <span v-for="(label, key) in refundTypeMap" :key="key"
+                :class="['type-chip', { active: refundForm.type === key }]"
+                @click="refundForm.type = key">{{ label }}</span>
+        </div>
+        <van-field v-model="refundForm.description" label="详细说明" placeholder="请描述退款原因" type="textarea" rows="2" />
+      </div>
+    </van-dialog>
 
     <div v-if="showReview" class="review-form">
       <div class="review-card">
@@ -179,4 +261,15 @@ onMounted(fetch)
 .review-form { padding: 12px 16px; }
 .review-card { background: #fff; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
 .review-card h4 { font-size: 14px; margin-bottom: 8px; }
+
+.dispute-card { margin-top: 8px; }
+
+.refund-form-inner { padding: 16px; }
+.refund-type-label { font-size: 14px; font-weight: 500; margin-bottom: 8px; color: #323233; }
+.refund-types { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.type-chip {
+  padding: 6px 14px; border-radius: 16px; background: #f5f5f5; font-size: 12px;
+  cursor: pointer; border: 1px solid transparent; transition: all 0.2s;
+}
+.type-chip.active { background: #fff0e8; border-color: #ff6b35; color: #ff6b35; font-weight: 500; }
 </style>
